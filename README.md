@@ -80,4 +80,5 @@ Use spotless for code format.
 
 Please fork and PR to improve the project.
 
-<!-- Verification comment added by Devin for testing purposes -->
+## Verification Note
+This change was added by Devin AI for testing workflow verification purposes.
