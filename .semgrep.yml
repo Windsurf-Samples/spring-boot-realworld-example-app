@@ -1,0 +1,17 @@
+rules:
+  - p/java
+  - p/spring
+  - p/owasp-top-ten
+  - p/security-audit
+
+extends:
+  - rules:
+    - java.spring.security.audit.spring-actuator-fully-enabled
+    - java.spring.security.audit.spring-csrf-disabled
+    - java.spring.security.audit.spring-http-security-disabled
+    - java.spring.security.audit.spring-security-disabled
+    - java.lang.security.audit.crypto.ssl.defaulthttpclient-is-deprecated
+    - java.lang.security.audit.crypto.weak-hash
+    - java.lang.security.audit.sqli.jdbc-sqli
+    - java.lang.security.audit.xss.servlet-xss
+    - java.lang.security.audit.crypto.insecure-hash-algorithms

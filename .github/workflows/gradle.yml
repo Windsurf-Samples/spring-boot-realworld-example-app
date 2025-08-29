@@ -9,6 +9,8 @@ on:
   pull_request:
     branches:
       - '**'
+  schedule:
+    - cron: '20 17 * * *' # Daily scan at 17:20 UTC
 
 jobs:
   build:
@@ -32,3 +34,15 @@ jobs:
           ${{ runner.os }}-gradle-
     - name: Test with Gradle
       run: ./gradlew clean test
+
+  semgrep:
+    name: Semgrep Security Scan
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    if: (github.actor != 'dependabot[bot]')
+    steps:
+      - uses: actions/checkout@v4
+      - run: semgrep ci --config=p/java --config=p/spring --config=p/owasp-top-ten
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
