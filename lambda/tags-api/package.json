@@ -1,0 +1,22 @@
+{
+  "name": "tags-api-lambda",
+  "version": "1.0.0",
+  "description": "Serverless Tags API Lambda function",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "mysql2": "^3.6.0",
+    "aws-sdk": "^2.1467.0"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "serverless",
+    "tags",
+    "api"
+  ],
+  "author": "Devin AI",
+  "license": "MIT"
+}
