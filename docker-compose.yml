@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: realworld
+      POSTGRES_USER: realworld
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/main/resources/db/migration:/docker-entrypoint-initdb.d
+    
+  articles-api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/realworld
+      DATABASE_DRIVER: org.postgresql.Driver
+      DATABASE_USERNAME: realworld
+      DATABASE_PASSWORD: password
+      JWT_SECRET: nRvyYC4soFxBdZ-F-5Nnzz5USXstR1YylsTd-mA0aKtI9HUlriGrtkf-TiuDapkLiUCogO3JOK7kwZisrHp6wA
+      JWT_SESSION_TIME: 86400
+      DEFAULT_USER_IMAGE: https://static.productionready.io/images/smiley-cyrus.jpg
+      LOG_LEVEL_ARTICLE: DEBUG
+      LOG_LEVEL_MAPPER: DEBUG
+      LOG_LEVEL_WEB: INFO
+    depends_on:
+      - postgres
+    
+volumes:
+  postgres_data:

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: articles-api-config
+  namespace: default
+data:
+  DATABASE_DRIVER: "org.postgresql.Driver"
+  DEFAULT_USER_IMAGE: "https://static.productionready.io/images/smiley-cyrus.jpg"
+  JWT_SESSION_TIME: "86400"
+  LOG_LEVEL_ARTICLE: "INFO"
+  LOG_LEVEL_MAPPER: "INFO"
+  LOG_LEVEL_WEB: "INFO"
+  SPRING_PROFILES_ACTIVE: "production"
