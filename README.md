@@ -53,9 +53,98 @@ Alternatively, you can run
 
     curl http://localhost:8080/tags
 
-# Try it out with [Docker](https://www.docker.com/)
+# Docker Containerization
+
+This application has been containerized using Docker with a multi-stage build for optimal image size and security.
+
+## Building the Docker Image
 
 You'll need Docker installed.
+
+```bash
+docker build -t spring-boot-realworld .
+```
+
+## Running the Container
+
+### Basic Usage
+```bash
+docker run -p 8080:8080 spring-boot-realworld
+```
+
+### With Database Persistence
+```bash
+# Create a data directory for database persistence
+mkdir -p data
+docker run -p 8080:8080 -v $(pwd)/data:/app/data spring-boot-realworld
+```
+
+### With Environment Variables
+```bash
+docker run -p 8080:8080 \
+  -v $(pwd)/data:/app/data \
+  -e SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/production.db \
+  -e JWT_SECRET=your-secure-jwt-secret-here \
+  spring-boot-realworld
+```
+
+## Environment Variables
+
+The container supports the following environment variables:
+
+- `SPRING_DATASOURCE_URL`: Database connection URL (default: `jdbc:sqlite:/app/data/dev.db`)
+- `JWT_SECRET`: Secret key for JWT token signing (default: provided fallback value)
+
+## Database Persistence
+
+The container uses a Docker volume mounted at `/app/data` to persist the SQLite database. This ensures your data survives container restarts and updates.
+
+### Database Backup
+To backup your database:
+```bash
+# Copy database from running container
+docker cp <container_id>:/app/data/dev.db ./backup-dev.db
+
+# Or backup from volume mount
+cp data/dev.db backup-dev.db
+```
+
+## Container Security
+
+- The application runs as a non-root user (`appuser`) for enhanced security
+- Health checks are configured to monitor application status
+- Only necessary files are included in the image via `.dockerignore`
+
+## Local Development with Containers
+
+For local development, you can use the container while maintaining code changes:
+
+```bash
+# Build and run for development
+docker build -t spring-boot-realworld-dev .
+docker run -p 8080:8080 -v $(pwd)/data:/app/data spring-boot-realworld-dev
+```
+
+## Considerations for Production
+
+### SQLite vs Other Databases
+While SQLite works well for development and small deployments, consider these factors for production:
+
+- **Pros**: Simple setup, no external dependencies, good for single-instance deployments
+- **Cons**: Limited concurrent write performance, not suitable for multi-instance deployments
+- **Alternatives**: For production at scale, consider PostgreSQL or MySQL with external database services
+
+### Logging in Containers
+Application logs are written to stdout/stderr and can be viewed with:
+```bash
+docker logs <container_id>
+```
+
+For production, consider using a logging driver or external log aggregation service.
+
+# Try it out with Spring Boot's built-in Docker support
+
+Alternatively, you can use Spring Boot's built-in Docker image building:
 	
     ./gradlew bootBuildImage --imageName spring-boot-realworld-example-app
     docker run -p 8081:8080 spring-boot-realworld-example-app
