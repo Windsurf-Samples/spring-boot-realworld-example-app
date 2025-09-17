@@ -8,7 +8,6 @@ import io.spring.api.exception.ResourceNotFoundException;
 import io.spring.application.UserQueryService;
 import io.spring.application.data.UserData;
 import io.spring.application.data.UserWithToken;
-import io.spring.core.service.JwtService;
 import io.spring.graphql.DgsConstants.QUERY;
 import io.spring.graphql.DgsConstants.USERPAYLOAD;
 import io.spring.graphql.types.User;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @AllArgsConstructor
 public class MeDatafetcher {
   private UserQueryService userQueryService;
-  private JwtService jwtService;
 
   @DgsData(parentType = DgsConstants.QUERY_TYPE, field = QUERY.Me)
   public DataFetcherResult<User> getMe(
@@ -54,7 +52,7 @@ public class MeDatafetcher {
         User.newBuilder()
             .email(user.getEmail())
             .username(user.getUsername())
-            .token(jwtService.toToken(user))
+            .token("") // Token will be provided by auth service
             .build();
     return DataFetcherResult.<User>newResult().data(result).localContext(user).build();
   }

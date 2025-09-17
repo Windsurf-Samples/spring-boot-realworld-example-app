@@ -1,6 +1,6 @@
-package io.spring.core.user;
+package io.spring.auth.core.user;
 
-import io.spring.Util;
+import io.spring.auth.Util;
 import java.util.UUID;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -24,10 +24,6 @@ public class User {
     this.password = password;
     this.bio = bio;
     this.image = image;
-  }
-
-  public void setId(String id) {
-    this.id = id;
   }
 
   public void update(String email, String username, String password, String bio, String image) {

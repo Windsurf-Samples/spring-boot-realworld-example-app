@@ -32,7 +32,13 @@ public class CurrentUserApi {
   public ResponseEntity currentUser(
       @AuthenticationPrincipal User currentUser,
       @RequestHeader(value = "Authorization") String authorization) {
-    UserData userData = userQueryService.findById(currentUser.getId()).get();
+    UserData userData =
+        new UserData(
+            currentUser.getId(),
+            currentUser.getEmail(),
+            currentUser.getUsername(),
+            currentUser.getBio(),
+            currentUser.getImage());
     return ResponseEntity.ok(
         userResponse(new UserWithToken(userData, authorization.split(" ")[1])));
   }
@@ -44,7 +50,13 @@ public class CurrentUserApi {
       @Valid @RequestBody UpdateUserParam updateUserParam) {
 
     userService.updateUser(new UpdateUserCommand(currentUser, updateUserParam));
-    UserData userData = userQueryService.findById(currentUser.getId()).get();
+    UserData userData =
+        new UserData(
+            currentUser.getId(),
+            currentUser.getEmail(),
+            currentUser.getUsername(),
+            currentUser.getBio(),
+            currentUser.getImage());
     return ResponseEntity.ok(userResponse(new UserWithToken(userData, token.split(" ")[1])));
   }
 

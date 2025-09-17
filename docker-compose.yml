@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./auth-service/auth.db:/app/auth.db
+    networks:
+      - realworld-network
+
+  main-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - AUTH_SERVICE_URL=http://auth-service:8081
+    volumes:
+      - ./dev.db:/app/dev.db
+    depends_on:
+      - auth-service
+    networks:
+      - realworld-network
+
+networks:
+  realworld-network:
+    driver: bridge
