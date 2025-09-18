@@ -4,12 +4,15 @@ import io.spring.application.ArticleQueryService;
 import io.spring.core.article.Article;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 
-class DuplicatedArticleValidator
+@Component
+@AllArgsConstructor
+public class DuplicatedArticleValidator
     implements ConstraintValidator<DuplicatedArticleConstraint, String> {
 
-  @Autowired private ArticleQueryService articleQueryService;
+  private final ArticleQueryService articleQueryService;
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
