@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import io.spring.api.exception.NoAuthorizationException;
 import io.spring.api.exception.ResourceNotFoundException;
 import io.spring.application.CommentQueryService;
+import io.spring.application.CursorPageParameter;
+import io.spring.application.CursorPager;
+import io.spring.application.CursorPager.Direction;
+import io.spring.application.DateTimeCursor;
 import io.spring.application.data.CommentData;
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
@@ -27,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -52,9 +57,40 @@ public class CommentsApi {
 
   @GetMapping
   public ResponseEntity getComments(
-      @PathVariable("slug") String slug, @AuthenticationPrincipal User user) {
+      @PathVariable("slug") String slug,
+      @RequestParam(value = "first", required = false) Integer first,
+      @RequestParam(value = "after", required = false) String after,
+      @RequestParam(value = "last", required = false) Integer last,
+      @RequestParam(value = "before", required = false) String before,
+      @AuthenticationPrincipal User user) {
+
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
+
+    if (first != null || last != null || after != null || before != null) {
+      if (first == null && last == null) {
+        throw new IllegalArgumentException(
+            "Either 'first' or 'last' must be provided for cursor pagination");
+      }
+
+      CursorPager<CommentData> comments;
+      if (first != null) {
+        comments =
+            commentQueryService.findByArticleIdWithCursor(
+                article.getId(),
+                user,
+                new CursorPageParameter<>(DateTimeCursor.parse(after), first, Direction.NEXT));
+      } else {
+        comments =
+            commentQueryService.findByArticleIdWithCursor(
+                article.getId(),
+                user,
+                new CursorPageParameter<>(DateTimeCursor.parse(before), last, Direction.PREV));
+      }
+
+      return ResponseEntity.ok(buildCursorResponse(comments));
+    }
+
     List<CommentData> comments = commentQueryService.findByArticleId(article.getId(), user);
     return ResponseEntity.ok(
         new HashMap<String, Object>() {
@@ -88,6 +124,30 @@ public class CommentsApi {
     return new HashMap<String, Object>() {
       {
         put("comment", commentData);
+      }
+    };
+  }
+
+  private Map<String, Object> buildCursorResponse(CursorPager<CommentData> comments) {
+    return new HashMap<String, Object>() {
+      {
+        put("comments", comments.getData());
+        put(
+            "pageInfo",
+            new HashMap<String, Object>() {
+              {
+                put("hasNextPage", comments.hasNext());
+                put("hasPreviousPage", comments.hasPrevious());
+                put(
+                    "startCursor",
+                    comments.getStartCursor() != null
+                        ? comments.getStartCursor().toString()
+                        : null);
+                put(
+                    "endCursor",
+                    comments.getEndCursor() != null ? comments.getEndCursor().toString() : null);
+              }
+            });
       }
     };
   }

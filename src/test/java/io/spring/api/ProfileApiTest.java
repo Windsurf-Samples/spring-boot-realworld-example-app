@@ -31,6 +31,8 @@ public class ProfileApiTest extends TestWithCurrentUser {
 
   @MockBean private ProfileQueryService profileQueryService;
 
+  @MockBean private io.spring.application.ArticleQueryService articleQueryService;
+
   private ProfileData profileData;
 
   @BeforeEach
