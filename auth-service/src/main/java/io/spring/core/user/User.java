@@ -4,8 +4,10 @@ import io.spring.Util;
 import java.util.UUID;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 public class User {
   private String id;
@@ -15,8 +17,6 @@ public class User {
   private String bio;
   private String image;
 
-  public User() {}
-
   public User(String email, String username, String password, String bio, String image) {
     this.id = UUID.randomUUID().toString();
     this.email = email;
@@ -24,14 +24,6 @@ public class User {
     this.password = password;
     this.bio = bio;
     this.image = image;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
   }
 
   public void update(String email, String username, String password, String bio, String image) {

@@ -6,7 +6,9 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
+@UpdateUserConstraint
 public class UpdateUserCommand {
+
   private User targetUser;
   private UpdateUserParam param;
 }

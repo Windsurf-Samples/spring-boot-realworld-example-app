@@ -1,7 +1,7 @@
 package io.spring.api.security;
 
-import io.spring.core.service.JwtService;
-import io.spring.core.user.UserRepository;
+import io.spring.core.user.User;
+import io.spring.infrastructure.service.AuthServiceClient;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
@@ -17,8 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @SuppressWarnings("SpringJavaAutowiringInspection")
 public class JwtTokenFilter extends OncePerRequestFilter {
-  @Autowired private UserRepository userRepository;
-  @Autowired private JwtService jwtService;
+  @Autowired private AuthServiceClient authServiceClient;
   private final String header = "Authorization";
 
   @Override
@@ -26,21 +25,20 @@ public class JwtTokenFilter extends OncePerRequestFilter {
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
     getTokenString(request.getHeader(header))
-        .flatMap(token -> jwtService.getSubFromToken(token))
+        .flatMap(token -> authServiceClient.validateToken(token))
+        .filter(validationResponse -> validationResponse.isValid())
         .ifPresent(
-            id -> {
+            validationResponse -> {
               if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                userRepository
-                    .findById(id)
-                    .ifPresent(
-                        user -> {
-                          UsernamePasswordAuthenticationToken authenticationToken =
-                              new UsernamePasswordAuthenticationToken(
-                                  user, null, Collections.emptyList());
-                          authenticationToken.setDetails(
-                              new WebAuthenticationDetailsSource().buildDetails(request));
-                          SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                        });
+                User user = new User();
+                user.setId(validationResponse.getUserId());
+                user.setUsername(validationResponse.getUsername());
+
+                UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+                authenticationToken.setDetails(
+                    new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
               }
             });
 

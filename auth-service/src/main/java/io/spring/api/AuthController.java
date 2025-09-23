@@ -1,0 +1,121 @@
+package io.spring.api;
+
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+
+import com.fasterxml.jackson.annotation.JsonRootName;
+import io.spring.api.exception.InvalidAuthenticationException;
+import io.spring.application.UserQueryService;
+import io.spring.application.data.UserData;
+import io.spring.application.data.UserWithToken;
+import io.spring.application.user.RegisterParam;
+import io.spring.application.user.UpdateUserCommand;
+import io.spring.application.user.UpdateUserParam;
+import io.spring.application.user.UserService;
+import io.spring.core.service.JwtService;
+import io.spring.core.user.User;
+import io.spring.core.user.UserRepository;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@AllArgsConstructor
+public class AuthController {
+  private UserRepository userRepository;
+  private UserQueryService userQueryService;
+  private PasswordEncoder passwordEncoder;
+  private JwtService jwtService;
+  private UserService userService;
+
+  @RequestMapping(path = "/auth/register", method = POST)
+  public ResponseEntity createUser(@Valid @RequestBody RegisterParam registerParam) {
+    User user = userService.createUser(registerParam);
+    UserData userData = userQueryService.findById(user.getId()).get();
+    return ResponseEntity.status(201)
+        .body(userResponse(new UserWithToken(userData, jwtService.toToken(user))));
+  }
+
+  @RequestMapping(path = "/auth/login", method = POST)
+  public ResponseEntity userLogin(@Valid @RequestBody LoginParam loginParam) {
+    Optional<User> optional = userRepository.findByEmail(loginParam.getEmail());
+    if (optional.isPresent()
+        && passwordEncoder.matches(loginParam.getPassword(), optional.get().getPassword())) {
+      UserData userData = userQueryService.findById(optional.get().getId()).get();
+      return ResponseEntity.ok(
+          userResponse(new UserWithToken(userData, jwtService.toToken(optional.get()))));
+    } else {
+      throw new InvalidAuthenticationException();
+    }
+  }
+
+  @RequestMapping(path = "/auth/validate", method = POST)
+  public ResponseEntity<ValidationResponse> validateToken(
+      @RequestBody TokenValidationRequest request) {
+    Optional<String> userId = jwtService.getSubFromToken(request.getToken());
+    if (userId.isPresent()) {
+      Optional<User> user = userRepository.findById(userId.get());
+      if (user.isPresent()) {
+        return ResponseEntity.ok(
+            new ValidationResponse(true, userId.get(), user.get().getUsername()));
+      }
+    }
+    return ResponseEntity.ok(new ValidationResponse(false, null, null));
+  }
+
+  @RequestMapping(path = "/auth/user", method = PUT)
+  public ResponseEntity updateUser(
+      @AuthenticationPrincipal User user, @Valid @RequestBody UpdateUserParam updateUserParam) {
+    userService.updateUser(new UpdateUserCommand(user, updateUserParam));
+    UserData userData = userQueryService.findById(user.getId()).get();
+    return ResponseEntity.ok(userResponse(new UserWithToken(userData, jwtService.toToken(user))));
+  }
+
+  private Map<String, Object> userResponse(UserWithToken userWithToken) {
+    return new HashMap<String, Object>() {
+      {
+        put("user", userWithToken);
+      }
+    };
+  }
+}
+
+@Getter
+@JsonRootName("user")
+@NoArgsConstructor
+class LoginParam {
+  @NotBlank(message = "can't be empty")
+  @Email(message = "should be an email")
+  private String email;
+
+  @NotBlank(message = "can't be empty")
+  private String password;
+}
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+class TokenValidationRequest {
+  private String token;
+}
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+class ValidationResponse {
+  private boolean valid;
+  private String userId;
+  private String username;
+}
