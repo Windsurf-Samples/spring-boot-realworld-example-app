@@ -125,7 +125,18 @@ public class AuthServiceClient {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class UserWithTokenResponse {
-    private UserData user;
+    private UserWithToken user;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class UserWithToken {
+    private String id;
+    private String email;
+    private String username;
+    private String bio;
+    private String image;
     private String token;
   }
 

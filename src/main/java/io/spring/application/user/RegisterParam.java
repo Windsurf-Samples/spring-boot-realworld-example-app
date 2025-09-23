@@ -14,9 +14,11 @@ import lombok.NoArgsConstructor;
 public class RegisterParam {
   @NotBlank(message = "can't be empty")
   @Email(message = "should be an email")
+  @DuplicatedEmailConstraint
   private String email;
 
   @NotBlank(message = "can't be empty")
+  @DuplicatedUsernameConstraint
   private String username;
 
   @NotBlank(message = "can't be empty")
