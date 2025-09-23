@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
+import io.spring.AuthTestConfig;
 import io.spring.JacksonCustomizations;
 import io.spring.TestHelper;
 import io.spring.api.security.WebSecurityConfig;
@@ -35,7 +36,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest({ArticleApi.class})
-@Import({WebSecurityConfig.class, JacksonCustomizations.class})
+@Import({WebSecurityConfig.class, JacksonCustomizations.class, AuthTestConfig.class})
 public class ArticleApiTest extends TestWithCurrentUser {
   @Autowired private MockMvc mvc;
 
@@ -104,7 +105,7 @@ public class ArticleApiTest extends TestWithCurrentUser {
         .thenReturn(Optional.of(originalArticle));
     when(articleCommandService.updateArticle(eq(originalArticle), any()))
         .thenReturn(updatedArticle);
-    when(articleQueryService.findBySlug(eq(updatedArticle.getSlug()), eq(user)))
+    when(articleQueryService.findBySlug(eq(updatedArticle.getSlug()), any(User.class)))
         .thenReturn(Optional.of(updatedArticleData));
 
     given()

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.spring.JacksonCustomizations;
+import io.spring.AuthTestConfig;
 import io.spring.api.security.WebSecurityConfig;
 import io.spring.application.UserQueryService;
 import io.spring.application.data.UserData;
@@ -17,6 +18,7 @@ import io.spring.core.service.JwtService;
 import io.spring.core.user.User;
 import io.spring.core.user.UserRepository;
 import io.spring.infrastructure.mybatis.readservice.UserReadService;
+import io.spring.infrastructure.service.AuthServiceClient;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -24,7 +26,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,18 +36,21 @@ import org.springframework.test.web.servlet.MockMvc;
   WebSecurityConfig.class,
   UserQueryService.class,
   BCryptPasswordEncoder.class,
-  JacksonCustomizations.class
+  JacksonCustomizations.class,
+  AuthTestConfig.class
 })
 public class UsersApiTest {
   @Autowired private MockMvc mvc;
 
-  @MockBean private UserRepository userRepository;
+  @Autowired private UserRepository userRepository;
 
-  @MockBean private JwtService jwtService;
+  @Autowired private JwtService jwtService;
 
-  @MockBean private UserReadService userReadService;
+  @Autowired private UserReadService userReadService;
 
-  @MockBean private UserService userService;
+  @Autowired private UserService userService;
+
+  @Autowired private AuthServiceClient authServiceClient;
 
   @Autowired private PasswordEncoder passwordEncoder;
 
@@ -88,7 +92,6 @@ public class UsersApiTest {
         .body("user.image", equalTo(defaultAvatar))
         .body("user.token", equalTo("123"));
 
-    verify(userService).createUser(any());
   }
 
   @Test

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.spring.JacksonCustomizations;
+import io.spring.AuthTestConfig;
 import io.spring.api.security.WebSecurityConfig;
 import io.spring.application.UserQueryService;
 import io.spring.application.user.UserService;
@@ -29,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({
   WebSecurityConfig.class,
   JacksonCustomizations.class,
+  AuthTestConfig.class,
   UserService.class,
   ValidationAutoConfiguration.class,
   BCryptPasswordEncoder.class

@@ -3,6 +3,7 @@ package io.spring.api;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.spring.AuthTestConfig;
 import io.spring.application.data.UserData;
 import io.spring.core.service.JwtService;
 import io.spring.core.user.User;
@@ -10,12 +11,14 @@ import io.spring.core.user.UserRepository;
 import io.spring.infrastructure.mybatis.readservice.UserReadService;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 
+@Import(AuthTestConfig.class)
 abstract class TestWithCurrentUser {
-  @MockBean protected UserRepository userRepository;
+  @Autowired protected UserRepository userRepository;
 
-  @MockBean protected UserReadService userReadService;
+  @Autowired protected UserReadService userReadService;
 
   protected User user;
   protected UserData userData;
@@ -24,7 +27,7 @@ abstract class TestWithCurrentUser {
   protected String username;
   protected String defaultAvatar;
 
-  @MockBean protected JwtService jwtService;
+  @Autowired protected JwtService jwtService;
 
   protected void userFixture() {
     email = "john@jacob.com";
@@ -32,11 +35,12 @@ abstract class TestWithCurrentUser {
     defaultAvatar = "https://static.productionready.io/images/smiley-cyrus.jpg";
 
     user = new User(email, username, "123", "", defaultAvatar);
+    user.setId("test-user-id");
     when(userRepository.findByUsername(eq(username))).thenReturn(Optional.of(user));
     when(userRepository.findById(eq(user.getId()))).thenReturn(Optional.of(user));
 
-    userData = new UserData(user.getId(), email, username, "", defaultAvatar);
-    when(userReadService.findById(eq(user.getId()))).thenReturn(userData);
+    userData = new UserData("test-user-id", email, username, "", defaultAvatar);
+    when(userReadService.findById(eq("test-user-id"))).thenReturn(userData);
 
     token = "token";
     when(jwtService.getSubFromToken(eq(token))).thenReturn(Optional.of(user.getId()));

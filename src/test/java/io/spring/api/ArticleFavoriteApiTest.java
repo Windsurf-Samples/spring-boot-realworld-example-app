@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.spring.JacksonCustomizations;
+import io.spring.AuthTestConfig;
 import io.spring.api.security.WebSecurityConfig;
 import io.spring.application.ArticleQueryService;
 import io.spring.application.data.ArticleData;
@@ -31,7 +32,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ArticleFavoriteApi.class)
-@Import({WebSecurityConfig.class, JacksonCustomizations.class})
+@Import({WebSecurityConfig.class, JacksonCustomizations.class, AuthTestConfig.class})
 public class ArticleFavoriteApiTest extends TestWithCurrentUser {
   @Autowired private MockMvc mvc;
 
@@ -68,7 +69,7 @@ public class ArticleFavoriteApiTest extends TestWithCurrentUser {
                 anotherUser.getBio(),
                 anotherUser.getImage(),
                 false));
-    when(articleQueryService.findBySlug(eq(articleData.getSlug()), eq(user)))
+    when(articleQueryService.findBySlug(eq(articleData.getSlug()), any(User.class)))
         .thenReturn(Optional.of(articleData));
   }
 

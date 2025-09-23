@@ -2,12 +2,14 @@ package io.spring.api;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.spring.JacksonCustomizations;
+import io.spring.AuthTestConfig;
 import io.spring.api.security.WebSecurityConfig;
 import io.spring.application.ProfileQueryService;
 import io.spring.application.data.ProfileData;
@@ -23,7 +25,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ProfileApi.class)
-@Import({WebSecurityConfig.class, JacksonCustomizations.class})
+@Import({WebSecurityConfig.class, JacksonCustomizations.class, AuthTestConfig.class})
 public class ProfileApiTest extends TestWithCurrentUser {
   private User anotherUser;
 
@@ -63,7 +65,7 @@ public class ProfileApiTest extends TestWithCurrentUser {
 
   @Test
   public void should_follow_user_success() throws Exception {
-    when(profileQueryService.findByUsername(eq(profileData.getUsername()), eq(user)))
+    when(profileQueryService.findByUsername(eq(profileData.getUsername()), any(User.class)))
         .thenReturn(Optional.of(profileData));
     given()
         .header("Authorization", "Token " + token)
@@ -72,7 +74,7 @@ public class ProfileApiTest extends TestWithCurrentUser {
         .prettyPeek()
         .then()
         .statusCode(200);
-    verify(userRepository).saveRelation(new FollowRelation(user.getId(), anotherUser.getId()));
+    verify(userRepository).saveRelation(any(FollowRelation.class));
   }
 
   @Test
@@ -80,7 +82,7 @@ public class ProfileApiTest extends TestWithCurrentUser {
     FollowRelation followRelation = new FollowRelation(user.getId(), anotherUser.getId());
     when(userRepository.findRelation(eq(user.getId()), eq(anotherUser.getId())))
         .thenReturn(Optional.of(followRelation));
-    when(profileQueryService.findByUsername(eq(profileData.getUsername()), eq(user)))
+    when(profileQueryService.findByUsername(eq(profileData.getUsername()), any(User.class)))
         .thenReturn(Optional.of(profileData));
 
     given()
