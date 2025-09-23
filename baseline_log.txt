@@ -1,0 +1,8 @@
+Java 11 Baseline Established:
+- Build: SUCCESS (68 tests passed)
+- Java Version: openjdk version "11.0.28" 2025-07-15 LTS
+- Gradle Version: 7.4
+- No JAXB/JAX-WS/CORBA/JavaFX usage found
+- Current JVM flags: DEFAULT_JVM_OPTS='-Xmx64m -Xms64m'
+- All dependencies are Java 11 compatible
+- Using Jakarta annotations (not javax)
