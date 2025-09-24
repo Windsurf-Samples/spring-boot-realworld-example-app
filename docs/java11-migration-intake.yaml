@@ -1,0 +1,33 @@
+repo: https://github.com/Windsurf-Samples/spring-boot-realworld-example-app
+build: gradle
+packaging: service
+jdk_current: corretto-11.0.28
+ci_provider: github-actions
+uses:
+  java_fx: false
+  jaxb: false
+  jaxws: false
+  corba: false
+  nashorn: false
+frameworks: [spring-boot-2.6.3, spring-security, spring-hateoas]
+app_server: embedded-tomcat
+known_risks: [deprecated-api-usage, gradle-task-dependencies]
+current_status: already-java-11-configured
+migration_needed: verification-and-modernization-only
+dependencies:
+  - spring-boot-starter-web
+  - spring-boot-starter-validation
+  - spring-boot-starter-hateoas
+  - spring-boot-starter-security
+  - mybatis-spring-boot-starter
+  - graphql-dgs-spring-boot-starter
+  - flyway-core
+  - jjwt
+  - joda-time
+  - sqlite-jdbc
+  - lombok
+build_issues:
+  - spotless-task-dependency-warnings
+  - deprecated-api-usage-in-graphql-handler
+test_results: 68-tests-passing
+gradle_version: 7.4
