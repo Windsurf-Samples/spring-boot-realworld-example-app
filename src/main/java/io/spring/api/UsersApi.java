@@ -38,7 +38,10 @@ public class UsersApi {
 
   @RequestMapping(path = "/users", method = POST)
   public ResponseEntity createUser(@Valid @RequestBody RegisterParam registerParam) {
+    System.out.println(
+        "DEBUG: POST /users - Creating new user with email: " + registerParam.getEmail());
     User user = userService.createUser(registerParam);
+    System.out.println("DEBUG: POST /users - User created successfully with ID: " + user.getId());
     UserData userData = userQueryService.findById(user.getId()).get();
     return ResponseEntity.status(201)
         .body(userResponse(new UserWithToken(userData, jwtService.toToken(user))));
@@ -46,13 +49,23 @@ public class UsersApi {
 
   @RequestMapping(path = "/users/login", method = POST)
   public ResponseEntity userLogin(@Valid @RequestBody LoginParam loginParam) {
+    System.out.println(
+        "DEBUG: POST /users/login - Login attempt for email: " + loginParam.getEmail());
     Optional<User> optional = userRepository.findByEmail(loginParam.getEmail());
-    if (optional.isPresent()
-        && passwordEncoder.matches(loginParam.getPassword(), optional.get().getPassword())) {
-      UserData userData = userQueryService.findById(optional.get().getId()).get();
-      return ResponseEntity.ok(
-          userResponse(new UserWithToken(userData, jwtService.toToken(optional.get()))));
+    if (optional.isPresent()) {
+      System.out.println("DEBUG: POST /users/login - User found, checking password");
+      if (passwordEncoder.matches(loginParam.getPassword(), optional.get().getPassword())) {
+        System.out.println("DEBUG: POST /users/login - Password matches, login successful");
+        UserData userData = userQueryService.findById(optional.get().getId()).get();
+        return ResponseEntity.ok(
+            userResponse(new UserWithToken(userData, jwtService.toToken(optional.get()))));
+      } else {
+        System.out.println("DEBUG: POST /users/login - Password does not match");
+        throw new InvalidAuthenticationException();
+      }
     } else {
+      System.out.println(
+          "DEBUG: POST /users/login - User not found with email: " + loginParam.getEmail());
       throw new InvalidAuthenticationException();
     }
   }

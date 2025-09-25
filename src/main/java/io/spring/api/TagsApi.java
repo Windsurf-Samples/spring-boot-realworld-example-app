@@ -16,10 +16,13 @@ public class TagsApi {
 
   @GetMapping
   public ResponseEntity getTags() {
+    System.out.println("DEBUG: GET /tags - Fetching all tags");
+    var tags = tagsQueryService.allTags();
+    System.out.println("DEBUG: GET /tags - Found " + tags.size() + " tags");
     return ResponseEntity.ok(
         new HashMap<String, Object>() {
           {
-            put("tags", tagsQueryService.allTags());
+            put("tags", tags);
           }
         });
   }

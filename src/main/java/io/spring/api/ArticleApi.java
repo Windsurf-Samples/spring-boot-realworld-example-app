@@ -35,10 +35,19 @@ public class ArticleApi {
   @GetMapping
   public ResponseEntity<?> article(
       @PathVariable("slug") String slug, @AuthenticationPrincipal User user) {
-    return articleQueryService
-        .findBySlug(slug, user)
-        .map(articleData -> ResponseEntity.ok(articleResponse(articleData)))
-        .orElseThrow(ResourceNotFoundException::new);
+    System.out.println(
+        "DEBUG: GET /articles/"
+            + slug
+            + " - User: "
+            + (user != null ? user.getUsername() : "anonymous"));
+    var articleOpt = articleQueryService.findBySlug(slug, user);
+    if (articleOpt.isPresent()) {
+      System.out.println("DEBUG: GET /articles/" + slug + " - Article found");
+      return ResponseEntity.ok(articleResponse(articleOpt.get()));
+    } else {
+      System.out.println("DEBUG: GET /articles/" + slug + " - Article not found");
+      throw new ResourceNotFoundException();
+    }
   }
 
   @PutMapping
@@ -46,15 +55,27 @@ public class ArticleApi {
       @PathVariable("slug") String slug,
       @AuthenticationPrincipal User user,
       @Valid @RequestBody UpdateArticleParam updateArticleParam) {
+    System.out.println(
+        "DEBUG: PUT /articles/"
+            + slug
+            + " - User: "
+            + (user != null ? user.getUsername() : "anonymous"));
     return articleRepository
         .findBySlug(slug)
         .map(
             article -> {
+              System.out.println(
+                  "DEBUG: PUT /articles/" + slug + " - Article found, checking authorization");
               if (!AuthorizationService.canWriteArticle(user, article)) {
+                System.out.println("DEBUG: PUT /articles/" + slug + " - Authorization failed");
                 throw new NoAuthorizationException();
               }
+              System.out.println(
+                  "DEBUG: PUT /articles/" + slug + " - Authorization passed, updating article");
               Article updatedArticle =
                   articleCommandService.updateArticle(article, updateArticleParam);
+              System.out.println(
+                  "DEBUG: PUT /articles/" + slug + " - Article updated successfully");
               return ResponseEntity.ok(
                   articleResponse(
                       articleQueryService.findBySlug(updatedArticle.getSlug(), user).get()));
@@ -65,14 +86,26 @@ public class ArticleApi {
   @DeleteMapping
   public ResponseEntity deleteArticle(
       @PathVariable("slug") String slug, @AuthenticationPrincipal User user) {
+    System.out.println(
+        "DEBUG: DELETE /articles/"
+            + slug
+            + " - User: "
+            + (user != null ? user.getUsername() : "anonymous"));
     return articleRepository
         .findBySlug(slug)
         .map(
             article -> {
+              System.out.println(
+                  "DEBUG: DELETE /articles/" + slug + " - Article found, checking authorization");
               if (!AuthorizationService.canWriteArticle(user, article)) {
+                System.out.println("DEBUG: DELETE /articles/" + slug + " - Authorization failed");
                 throw new NoAuthorizationException();
               }
+              System.out.println(
+                  "DEBUG: DELETE /articles/" + slug + " - Authorization passed, deleting article");
               articleRepository.remove(article);
+              System.out.println(
+                  "DEBUG: DELETE /articles/" + slug + " - Article deleted successfully");
               return ResponseEntity.noContent().build();
             })
         .orElseThrow(ResourceNotFoundException::new);
