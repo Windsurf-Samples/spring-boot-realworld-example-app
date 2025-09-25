@@ -1,0 +1,44 @@
+# Version control
+.git/
+.github/
+.gitignore
+
+# Build artifacts
+.gradle/
+build/
+gradle/wrapper/gradle-wrapper.jar
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation (except README.md)
+*.md
+!README.md
+
+# Logs
+*.log
+logs/
+
+# Database files (will be created in container)
+*.db
+*.sqlite
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Node modules (if any)
+node_modules/
+
+# Test reports
+test-results/
+coverage/
