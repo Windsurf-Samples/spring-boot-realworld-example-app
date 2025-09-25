@@ -1,4 +1,4 @@
-# ![RealWorld Example App using Kotlin and Spring](example-logo.png)
+# ![RealWorld Example App using Java and Spring](example-logo.png)
 
 [![Actions](https://github.com/gothinkster/spring-boot-realworld-example-app/workflows/Java%20CI/badge.svg)](https://github.com/gothinkster/spring-boot-realworld-example-app/actions)
 
@@ -8,15 +8,33 @@ This codebase was created to demonstrate a fully fledged full-stack application 
 
 For more information on how to this works with other frontends/backends, head over to the [RealWorld](https://github.com/gothinkster/realworld) repo.
 
-# *NEW* GraphQL Support  
+# REST API Features
 
-Following some DDD principles. REST or GraphQL is just a kind of adapter. And the domain layer will be consistent all the time. So this repository implement GraphQL and REST at the same time.
+This project provides a comprehensive REST API with advanced features:
 
-The GraphQL schema is https://github.com/gothinkster/spring-boot-realworld-example-app/blob/master/src/main/resources/schema/schema.graphqls and the visualization looks like below.
+## API Capabilities
+- All CRUD operations for articles, comments, and user management
+- Both offset-based and cursor-based pagination for optimal performance
+- Nested data endpoints to fetch related information efficiently
+- JWT-based authentication and authorization
+- Comprehensive error handling and validation
 
-![](graphql-schema.png)
+## REST API Examples:
 
-And this implementation is using [dgs-framework](https://github.com/Netflix/dgs-framework) which is a quite new java graphql server framework.
+Get recent articles with cursor pagination:
+```bash
+GET /api/articles?first=10&cursor=1234567890
+```
+
+Get article with comments in single request:
+```bash
+GET /api/articles/test-article/with-comments
+```
+
+Get user profile with their articles:
+```bash
+GET /api/profiles/username/articles?limit=5
+```
 # How it works
 
 The application uses Spring Boot (Web, Mybatis).
