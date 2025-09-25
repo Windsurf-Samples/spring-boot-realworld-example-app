@@ -56,9 +56,69 @@ Alternatively, you can run
 # Try it out with [Docker](https://www.docker.com/)
 
 You'll need Docker installed.
+
+## Using Custom Dockerfile (Recommended)
+
+Build the Docker image:
+
+    docker build -t spring-boot-realworld-example-app .
+
+Run the container with volume mounting for database persistence:
+
+    docker run -p 8080:8080 -v $(pwd)/data:/app/data spring-boot-realworld-example-app
+
+Run with custom environment variables:
+
+    docker run -p 8080:8080 \
+      -v $(pwd)/data:/app/data \
+      -e SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/production.db \
+      -e JWT_SECRET=your-custom-jwt-secret-here \
+      spring-boot-realworld-example-app
+
+## Using Spring Boot Build Pack (Alternative)
 	
     ./gradlew bootBuildImage --imageName spring-boot-realworld-example-app
     docker run -p 8081:8080 spring-boot-realworld-example-app
+
+## Docker Configuration
+
+### Environment Variables
+
+- `SPRING_DATASOURCE_URL`: Database connection URL (default: `jdbc:sqlite:/app/data/dev.db`)
+- `JWT_SECRET`: Secret key for JWT token signing (default: provided fallback key)
+
+### Volume Mounting
+
+The container uses `/app/data` as a volume for database persistence. Mount a local directory to this path to persist data between container restarts:
+
+    -v /path/to/local/data:/app/data
+
+### Database Persistence
+
+The SQLite database file will be stored in the mounted volume. For production use, consider:
+
+- Regular database backups using SQLite backup commands
+- Using a more robust database system (PostgreSQL, MySQL) for production deployments
+- Implementing database migration strategies for schema updates
+
+### Security Considerations
+
+- The container runs as a non-root user (`appuser`) for enhanced security
+- Always use a custom JWT secret in production environments
+- Consider using Docker secrets or environment files for sensitive configuration
+
+### Local Development with Docker
+
+For local development, you can mount the source code and use hot reload:
+
+    docker run -p 8080:8080 \
+      -v $(pwd)/data:/app/data \
+      -v $(pwd)/logs:/app/logs \
+      spring-boot-realworld-example-app
+
+### Health Check
+
+The container includes a health check that verifies the application is responding on the `/tags` endpoint every 30 seconds.
 
 # Try it out with a RealWorld frontend
 
