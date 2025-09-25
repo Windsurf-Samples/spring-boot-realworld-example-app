@@ -11,6 +11,7 @@ import io.spring.core.article.ArticleRepository;
 import io.spring.core.service.AuthorizationService;
 import io.spring.core.user.User;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -77,6 +78,7 @@ public class ArticleApi {
             })
         .orElseThrow(ResourceNotFoundException::new);
   }
+
 
   private Map<String, Object> articleResponse(ArticleData articleData) {
     return new HashMap<String, Object>() {
