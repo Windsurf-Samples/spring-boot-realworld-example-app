@@ -4,7 +4,11 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import io.spring.api.exception.NoAuthorizationException;
 import io.spring.api.exception.ResourceNotFoundException;
 import io.spring.application.CommentQueryService;
+import io.spring.application.CursorPageParameter;
+import io.spring.application.CursorPager;
+import io.spring.application.DateTimeCursor;
 import io.spring.application.data.CommentData;
+import io.spring.application.data.CommentDataCursorList;
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
 import io.spring.core.comment.Comment;
@@ -27,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -62,6 +67,23 @@ public class CommentsApi {
             put("comments", comments);
           }
         });
+  }
+
+  @GetMapping(path = "cursor")
+  public ResponseEntity getCommentsWithCursor(
+      @PathVariable("slug") String slug,
+      @RequestParam(value = "cursor", required = false) String cursor,
+      @RequestParam(value = "limit", defaultValue = "20") int limit,
+      @RequestParam(value = "direction", defaultValue = "NEXT") String direction,
+      @AuthenticationPrincipal User user) {
+    Article article =
+        articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
+    CursorPageParameter<org.joda.time.DateTime> page =
+        new CursorPageParameter<>(
+            DateTimeCursor.parse(cursor), limit, CursorPager.Direction.valueOf(direction));
+    return ResponseEntity.ok(
+        new CommentDataCursorList(
+            commentQueryService.findByArticleIdWithCursor(article.getId(), user, page)));
   }
 
   @RequestMapping(path = "{id}", method = RequestMethod.DELETE)

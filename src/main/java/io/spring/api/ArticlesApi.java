@@ -1,9 +1,13 @@
 package io.spring.api;
 
 import io.spring.application.ArticleQueryService;
+import io.spring.application.CursorPageParameter;
+import io.spring.application.CursorPager;
+import io.spring.application.DateTimeCursor;
 import io.spring.application.Page;
 import io.spring.application.article.ArticleCommandService;
 import io.spring.application.article.NewArticleParam;
+import io.spring.application.data.ArticleDataCursorList;
 import io.spring.core.article.Article;
 import io.spring.core.user.User;
 import java.util.HashMap;
@@ -56,5 +60,36 @@ public class ArticlesApi {
     return ResponseEntity.ok(
         articleQueryService.findRecentArticles(
             tag, author, favoritedBy, new Page(offset, limit), user));
+  }
+
+  @GetMapping(path = "feed-cursor")
+  public ResponseEntity getFeedWithCursor(
+      @RequestParam(value = "cursor", required = false) String cursor,
+      @RequestParam(value = "limit", defaultValue = "20") int limit,
+      @RequestParam(value = "direction", defaultValue = "NEXT") String direction,
+      @AuthenticationPrincipal User user) {
+    CursorPageParameter<org.joda.time.DateTime> page =
+        new CursorPageParameter<>(
+            DateTimeCursor.parse(cursor), limit, CursorPager.Direction.valueOf(direction));
+    return ResponseEntity.ok(
+        new ArticleDataCursorList(articleQueryService.findUserFeedWithCursor(user, page)));
+  }
+
+  @GetMapping(path = "cursor")
+  public ResponseEntity getArticlesWithCursor(
+      @RequestParam(value = "cursor", required = false) String cursor,
+      @RequestParam(value = "limit", defaultValue = "20") int limit,
+      @RequestParam(value = "direction", defaultValue = "NEXT") String direction,
+      @RequestParam(value = "tag", required = false) String tag,
+      @RequestParam(value = "favorited", required = false) String favoritedBy,
+      @RequestParam(value = "author", required = false) String author,
+      @AuthenticationPrincipal User user) {
+    CursorPageParameter<org.joda.time.DateTime> page =
+        new CursorPageParameter<>(
+            DateTimeCursor.parse(cursor), limit, CursorPager.Direction.valueOf(direction));
+    return ResponseEntity.ok(
+        new ArticleDataCursorList(
+            articleQueryService.findRecentArticlesWithCursor(
+                tag, author, favoritedBy, page, user)));
   }
 }
