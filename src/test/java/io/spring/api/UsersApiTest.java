@@ -268,4 +268,35 @@ public class UsersApiTest {
         .statusCode(422)
         .body("message", equalTo("invalid email or password"));
   }
+
+  @Test
+  public void should_fail_login_with_non_existent_email() throws Exception {
+    String email = "nonexistent@example.com";
+
+    when(userRepository.findByEmail(eq(email))).thenReturn(Optional.empty());
+
+    Map<String, Object> param =
+        new HashMap<String, Object>() {
+          {
+            put(
+                "user",
+                new HashMap<String, Object>() {
+                  {
+                    put("email", email);
+                    put("password", "somepassword");
+                  }
+                });
+          }
+        };
+
+    given()
+        .contentType("application/json")
+        .body(param)
+        .when()
+        .post("/users/login")
+        .prettyPeek()
+        .then()
+        .statusCode(422)
+        .body("message", equalTo("invalid email or password"));
+  }
 }

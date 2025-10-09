@@ -93,4 +93,18 @@ public class ProfileApiTest extends TestWithCurrentUser {
 
     verify(userRepository).removeRelation(eq(followRelation));
   }
+
+  @Test
+  public void should_return_404_when_unfollowing_non_existent_user() throws Exception {
+    String nonExistentUsername = "nonexistent";
+    when(userRepository.findByUsername(eq(nonExistentUsername))).thenReturn(Optional.empty());
+
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .delete("/profiles/{username}/follow", nonExistentUsername)
+        .prettyPeek()
+        .then()
+        .statusCode(404);
+  }
 }
