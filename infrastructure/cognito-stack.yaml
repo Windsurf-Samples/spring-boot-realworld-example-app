@@ -1,0 +1,190 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Amazon Cognito User Pool for Spring Boot RealWorld Application Authentication'
+
+Parameters:
+  ApplicationName:
+    Type: String
+    Default: 'spring-boot-realworld'
+    Description: 'Name of the application'
+  
+  Environment:
+    Type: String
+    Default: 'dev'
+    Description: 'Environment name (dev, staging, prod)'
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+  
+  UserPoolDomainPrefix:
+    Type: String
+    Description: 'Cognito User Pool domain prefix (must be globally unique)'
+    Default: 'spring-boot-realworld'
+
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${ApplicationName}-${Environment}-user-pool'
+      
+      UsernameAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: false
+      
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+        - Name: preferred_username
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+        - Name: image
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+          StringAttributeConstraints:
+            MinLength: '0'
+            MaxLength: '2048'
+        - Name: bio
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+          StringAttributeConstraints:
+            MinLength: '0'
+            MaxLength: '2048'
+      
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          TemporaryPasswordValidityDays: 7
+      
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      
+      AutoVerifiedAttributes:
+        - email
+      EmailVerificationMessage: 'Your verification code is {####}'
+      EmailVerificationSubject: 'Verify your email for RealWorld App'
+      
+      MfaConfiguration: 'OFF'
+      
+      UserPoolAddOns:
+        AdvancedSecurityMode: AUDIT
+      
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      
+      DeletionProtection: ACTIVE
+      
+      UserPoolTags:
+        Application: !Ref ApplicationName
+        Environment: !Ref Environment
+        ManagedBy: CloudFormation
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub '${ApplicationName}-${Environment}-client'
+      UserPoolId: !Ref UserPool
+      
+      AccessTokenValidity: 24
+      IdTokenValidity: 24
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: hours
+        RefreshToken: days
+      
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      
+      PreventUserExistenceErrors: ENABLED
+      
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+      AllowedOAuthFlowsUserPoolClient: true
+      CallbackURLs:
+        - 'http://localhost:8080/login/oauth2/code/cognito'
+        - 'https://localhost:8080/login/oauth2/code/cognito'
+      LogoutURLs:
+        - 'http://localhost:8080/logout'
+        - 'https://localhost:8080/logout'
+      SupportedIdentityProviders:
+        - COGNITO
+      
+      ReadAttributes:
+        - email
+        - email_verified
+        - preferred_username
+        - custom:image
+        - custom:bio
+      WriteAttributes:
+        - email
+        - preferred_username
+        - custom:image
+        - custom:bio
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub '${UserPoolDomainPrefix}-${Environment}'
+      UserPoolId: !Ref UserPool
+
+Outputs:
+  UserPoolId:
+    Description: 'Cognito User Pool ID'
+    Value: !Ref UserPool
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolId'
+  
+  UserPoolArn:
+    Description: 'Cognito User Pool ARN'
+    Value: !GetAtt UserPool.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolArn'
+  
+  UserPoolClientId:
+    Description: 'Cognito User Pool Client ID'
+    Value: !Ref UserPoolClient
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolClientId'
+  
+  UserPoolJwksUrl:
+    Description: 'JWKS endpoint URL for JWT token validation'
+    Value: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}/.well-known/jwks.json'
+    Export:
+      Name: !Sub '${AWS::StackName}-JwksUrl'
+  
+  UserPoolProviderUrl:
+    Description: 'Cognito User Pool Provider URL (Issuer)'
+    Value: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+    Export:
+      Name: !Sub '${AWS::StackName}-ProviderUrl'
+  
+  UserPoolDomain:
+    Description: 'Cognito User Pool Domain'
+    Value: !Sub '${UserPoolDomainPrefix}-${Environment}.auth.${AWS::Region}.amazoncognito.com'
+    Export:
+      Name: !Sub '${AWS::StackName}-Domain'
+  
+  HostedUIUrl:
+    Description: 'Cognito Hosted UI URL'
+    Value: !Sub 'https://${UserPoolDomainPrefix}-${Environment}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/cognito'
+    Export:
+      Name: !Sub '${AWS::StackName}-HostedUIUrl'
