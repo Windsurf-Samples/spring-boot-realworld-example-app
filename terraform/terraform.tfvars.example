@@ -1,0 +1,5 @@
+aws_region                 = "us-east-1"
+project_name               = "realworld-api"
+environment                = "dev"
+lambda_runtime             = "python3.11"
+database_connection_string = "your-database-connection-string-here"
