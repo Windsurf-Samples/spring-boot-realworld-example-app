@@ -12,9 +12,11 @@ import io.spring.application.user.UserService;
 import io.spring.core.service.JwtService;
 import io.spring.core.user.User;
 import io.spring.core.user.UserRepository;
+import io.spring.infrastructure.security.SecurityAuditLogger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -37,22 +39,28 @@ public class UsersApi {
   private UserService userService;
 
   @RequestMapping(path = "/users", method = POST)
-  public ResponseEntity createUser(@Valid @RequestBody RegisterParam registerParam) {
+  public ResponseEntity createUser(
+      @Valid @RequestBody RegisterParam registerParam, HttpServletRequest request) {
     User user = userService.createUser(registerParam);
     UserData userData = userQueryService.findById(user.getId()).get();
+    SecurityAuditLogger.logAccountCreation(user.getUsername(), user.getId(), request);
     return ResponseEntity.status(201)
         .body(userResponse(new UserWithToken(userData, jwtService.toToken(user))));
   }
 
   @RequestMapping(path = "/users/login", method = POST)
-  public ResponseEntity userLogin(@Valid @RequestBody LoginParam loginParam) {
+  public ResponseEntity userLogin(
+      @Valid @RequestBody LoginParam loginParam, HttpServletRequest request) {
     Optional<User> optional = userRepository.findByEmail(loginParam.getEmail());
     if (optional.isPresent()
         && passwordEncoder.matches(loginParam.getPassword(), optional.get().getPassword())) {
       UserData userData = userQueryService.findById(optional.get().getId()).get();
+      SecurityAuditLogger.logAuthenticationSuccess(
+          optional.get().getUsername(), optional.get().getId(), request);
       return ResponseEntity.ok(
           userResponse(new UserWithToken(userData, jwtService.toToken(optional.get()))));
     } else {
+      SecurityAuditLogger.logAuthenticationFailure(loginParam.getEmail(), request);
       throw new InvalidAuthenticationException();
     }
   }

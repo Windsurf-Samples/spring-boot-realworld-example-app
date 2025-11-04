@@ -1,7 +1,9 @@
 package io.spring.api.security;
 
 import io.spring.core.service.JwtService;
+import io.spring.core.user.User;
 import io.spring.core.user.UserRepository;
+import io.spring.infrastructure.security.SecurityAuditLogger;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
@@ -25,24 +27,34 @@ public class JwtTokenFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    getTokenString(request.getHeader(header))
-        .flatMap(token -> jwtService.getSubFromToken(token))
-        .ifPresent(
-            id -> {
-              if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                userRepository
-                    .findById(id)
-                    .ifPresent(
-                        user -> {
-                          UsernamePasswordAuthenticationToken authenticationToken =
-                              new UsernamePasswordAuthenticationToken(
-                                  user, null, Collections.emptyList());
-                          authenticationToken.setDetails(
-                              new WebAuthenticationDetailsSource().buildDetails(request));
-                          SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                        });
-              }
-            });
+    Optional<String> tokenString = getTokenString(request.getHeader(header));
+
+    if (tokenString.isEmpty()) {
+      SecurityAuditLogger.logInvalidToken(request);
+      filterChain.doFilter(request, response);
+      return;
+    }
+
+    Optional<String> userId = jwtService.getSubFromToken(tokenString.get());
+    if (userId.isEmpty()) {
+      SecurityAuditLogger.logInvalidToken(request);
+      filterChain.doFilter(request, response);
+      return;
+    }
+
+    if (SecurityContextHolder.getContext().getAuthentication() == null) {
+      Optional<User> userOptional = userRepository.findById(userId.get());
+      if (userOptional.isPresent()) {
+        User user = userOptional.get();
+        UsernamePasswordAuthenticationToken authenticationToken =
+            new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        SecurityAuditLogger.logAuthenticationSuccess(user.getUsername(), user.getId(), request);
+      } else {
+        SecurityAuditLogger.logInvalidToken(request);
+      }
+    }
 
     filterChain.doFilter(request, response);
   }

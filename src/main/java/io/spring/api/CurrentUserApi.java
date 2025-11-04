@@ -7,8 +7,10 @@ import io.spring.application.user.UpdateUserCommand;
 import io.spring.application.user.UpdateUserParam;
 import io.spring.application.user.UserService;
 import io.spring.core.user.User;
+import io.spring.infrastructure.security.SecurityAuditLogger;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -41,9 +43,12 @@ public class CurrentUserApi {
   public ResponseEntity updateProfile(
       @AuthenticationPrincipal User currentUser,
       @RequestHeader("Authorization") String token,
-      @Valid @RequestBody UpdateUserParam updateUserParam) {
+      @Valid @RequestBody UpdateUserParam updateUserParam,
+      HttpServletRequest request) {
 
     userService.updateUser(new UpdateUserCommand(currentUser, updateUserParam));
+    SecurityAuditLogger.logAccountModification(
+        currentUser.getUsername(), currentUser.getId(), request);
     UserData userData = userQueryService.findById(currentUser.getId()).get();
     return ResponseEntity.ok(userResponse(new UserWithToken(userData, token.split(" ")[1])));
   }
