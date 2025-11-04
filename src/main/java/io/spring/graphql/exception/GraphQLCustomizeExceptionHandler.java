@@ -11,15 +11,19 @@ import io.spring.api.exception.FieldErrorResource;
 import io.spring.api.exception.InvalidAuthenticationException;
 import io.spring.graphql.types.Error;
 import io.spring.graphql.types.ErrorItem;
+import io.spring.infrastructure.security.SecurityAuditLogger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Component
 public class GraphQLCustomizeExceptionHandler implements DataFetcherExceptionHandler {
@@ -30,7 +34,19 @@ public class GraphQLCustomizeExceptionHandler implements DataFetcherExceptionHan
   @Override
   public DataFetcherExceptionHandlerResult onException(
       DataFetcherExceptionHandlerParameters handlerParameters) {
+    HttpServletRequest request = null;
+    try {
+      ServletRequestAttributes attributes =
+          (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+      if (attributes != null) {
+        request = attributes.getRequest();
+      }
+    } catch (Exception e) {
+    }
+
     if (handlerParameters.getException() instanceof InvalidAuthenticationException) {
+      SecurityAuditLogger.logSecurityException(
+          "InvalidAuthenticationException", handlerParameters.getException().getMessage(), request);
       GraphQLError graphqlError =
           TypedGraphQLError.newBuilder()
               .errorType(ErrorType.UNAUTHENTICATED)
