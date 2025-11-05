@@ -4,7 +4,13 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import io.spring.api.exception.NoAuthorizationException;
 import io.spring.api.exception.ResourceNotFoundException;
 import io.spring.application.CommentQueryService;
+import io.spring.application.CursorPageParameter;
+import io.spring.application.CursorPager;
+import io.spring.application.CursorPager.Direction;
+import io.spring.application.DateTimeCursor;
+import io.spring.application.data.CommentCursorList;
 import io.spring.application.data.CommentData;
+import io.spring.application.data.PageInfo;
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
 import io.spring.core.comment.Comment;
@@ -19,6 +25,7 @@ import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.joda.time.DateTime;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +34,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -52,16 +60,44 @@ public class CommentsApi {
 
   @GetMapping
   public ResponseEntity getComments(
-      @PathVariable("slug") String slug, @AuthenticationPrincipal User user) {
+      @PathVariable("slug") String slug,
+      @RequestParam(value = "first", required = false) Integer first,
+      @RequestParam(value = "after", required = false) String after,
+      @RequestParam(value = "last", required = false) Integer last,
+      @RequestParam(value = "before", required = false) String before,
+      @AuthenticationPrincipal User user) {
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
-    List<CommentData> comments = commentQueryService.findByArticleId(article.getId(), user);
-    return ResponseEntity.ok(
-        new HashMap<String, Object>() {
-          {
-            put("comments", comments);
-          }
-        });
+
+    if (first != null || last != null) {
+      if (first == null && last == null) {
+        throw new IllegalArgumentException(
+            "Either first or last must be provided for cursor pagination");
+      }
+      CursorPageParameter<DateTime> pageParam;
+      if (first != null) {
+        pageParam = new CursorPageParameter<>(DateTimeCursor.parse(after), first, Direction.NEXT);
+      } else {
+        pageParam = new CursorPageParameter<>(DateTimeCursor.parse(before), last, Direction.PREV);
+      }
+      CursorPager<CommentData> result =
+          commentQueryService.findByArticleIdWithCursor(article.getId(), user, pageParam);
+      PageInfo pageInfo =
+          new PageInfo(
+              result.hasNext(),
+              result.hasPrevious(),
+              result.getStartCursor() == null ? null : result.getStartCursor().toString(),
+              result.getEndCursor() == null ? null : result.getEndCursor().toString());
+      return ResponseEntity.ok(new CommentCursorList(result.getData(), pageInfo));
+    } else {
+      List<CommentData> comments = commentQueryService.findByArticleId(article.getId(), user);
+      return ResponseEntity.ok(
+          new HashMap<String, Object>() {
+            {
+              put("comments", comments);
+            }
+          });
+    }
   }
 
   @RequestMapping(path = "{id}", method = RequestMethod.DELETE)
