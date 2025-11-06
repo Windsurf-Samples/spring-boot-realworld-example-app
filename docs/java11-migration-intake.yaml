@@ -1,0 +1,38 @@
+repo: https://github.com/Windsurf-Samples/spring-boot-realworld-example-app
+build: gradle
+gradle_version: 7.4
+packaging: service
+current_jdk: 11.0.28 (Amazon.com Inc.)
+jdk_vendor: amazon-corretto-11
+source_target: 11
+ci_provider: github-actions
+ci_jdk: zulu-11
+uses:
+  java_fx: false
+  jaxb: false
+  jaxws: false
+  corba: false
+  nashorn: false
+  jpms: false
+frameworks:
+  - spring-boot-2.6.3
+  - spring-security
+  - mybatis-2.2.2
+  - netflix-dgs-graphql-4.9.21
+app_server: tomcat-embedded-9.0.56
+database: sqlite-3.36.0.3
+testing:
+  framework: junit-5-jupiter
+  mocking: mockito
+  integration: rest-assured-4.5.1
+known_risks: []
+migration_status: ALREADY_ON_JAVA_11
+notes: |
+  Project is already fully configured for Java 11:
+  - build.gradle has sourceCompatibility/targetCompatibility = 11
+  - CI workflow uses JDK 11 (Zulu distribution)
+  - README explicitly states "You'll need Java 11 installed"
+  - All tests pass successfully on Java 11
+  - No removed JDK modules (JAXB, JAX-WS, etc.) are used
+  - No JPMS module-info.java present (uses classpath)
+  - No illegal reflective access warnings observed
