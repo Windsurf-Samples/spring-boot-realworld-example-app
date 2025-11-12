@@ -31,12 +31,12 @@ Migrating Spring Boot RealWorld application from Java 11 to Java 23 through incr
 
 ---
 
-## Milestone 2: Spring Boot 3.5.7 Upgrade & Dependency Updates ✅
+## Milestone 2: Spring Boot 3.4.9 Upgrade & Dependency Updates ✅
 **Status:** Completed  
 **Date:** November 7, 2025
 
 ### Changes Made
-- Upgraded Spring Boot from 2.6.3 to 3.5.7 (latest stable with Java 25 support)
+- Upgraded Spring Boot from 2.6.3 to 3.4.9 (latest stable 3.4.x with Java 23 support)
 - Added Spring dependency management plugin 1.1.7
 - Upgraded all major dependencies to Spring Boot 3.x compatible versions
 - Performed javax → jakarta namespace migration (Spring Boot 3.x requirement)
@@ -47,7 +47,7 @@ Migrating Spring Boot RealWorld application from Java 11 to Java 23 through incr
 
 | Dependency | Before | After | Notes |
 |------------|--------|-------|-------|
-| Spring Boot | 2.6.3 | 3.5.7 | Latest stable with Java 23+ support |
+| Spring Boot | 2.6.3 | 3.4.9 | Latest stable 3.4.x with Java 23 support |
 | Spring Dependency Management | 1.0.11.RELEASE | 1.1.7 | Required for Spring Boot 3.x |
 | Netflix DGS Codegen | 5.0.6 | 8.1.1 | Spring Boot 3.x compatible |
 | Netflix DGS Platform BOM | N/A | **10.4.0** | Added for DGS dependency management |
@@ -246,7 +246,7 @@ During build validation with Java 17, discovered additional breaking changes in 
 
 ### ✅ All Milestones Completed
 1. ✅ Gradle Wrapper Upgrade (7.4 → 8.10.2)
-2. ✅ Spring Boot & Dependencies Upgrade (2.6.3 → 3.5.7, DGS Platform BOM 10.4.0)
+2. ✅ Spring Boot & Dependencies Upgrade (2.6.3 → 3.4.9, DGS Platform BOM 10.4.0)
 3. ✅ Java 17 Upgrade (with DGS 10.x API refactoring)
 4. ✅ Java 21 Upgrade
 5. ✅ Java 23 Upgrade
@@ -254,7 +254,7 @@ During build validation with Java 17, discovered additional breaking changes in 
 
 ### Key Achievements
 - Successfully migrated from Java 11 to Java 23
-- Upgraded Spring Boot from 2.6.3 to 3.5.7 (latest stable)
+- Upgraded Spring Boot from 2.6.3 to 3.4.9 (latest stable 3.4.x)
 - Completed javax → jakarta namespace migration (19+ files)
 - Refactored Spring Security configuration for Spring Boot 3.x
 - Updated Netflix DGS framework to 10.x with Spring for GraphQL integration
