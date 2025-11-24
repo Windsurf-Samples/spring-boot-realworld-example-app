@@ -34,7 +34,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-
+    // CSRF protection is intentionally disabled for this stateless REST API.
+    // This API uses JWT tokens via Authorization headers (not cookies) and
+    // SessionCreationPolicy.STATELESS, so classical browser-based CSRF attacks
+    // do not apply. CSRF tokens would break non-browser API clients.
     http.csrf()
         .disable()
         .cors()
