@@ -70,6 +70,9 @@ public class ArticlesApi {
       @RequestParam(value = "last", required = false) Integer last,
       @RequestParam(value = "before", required = false) String before,
       @AuthenticationPrincipal User user) {
+    if (user == null) {
+      return ResponseEntity.status(401).body("Authentication required");
+    }
     if (first == null && last == null) {
       return ResponseEntity.badRequest()
           .body("Either 'first' or 'last' parameter must be provided");
