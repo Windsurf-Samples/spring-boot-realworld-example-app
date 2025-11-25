@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +28,7 @@ public class GraphQLCustomizeExceptionHandler implements DataFetcherExceptionHan
       new DefaultDataFetcherExceptionHandler();
 
   @Override
-  public CompletableFuture<DataFetcherExceptionHandlerResult> handleException(
+  public DataFetcherExceptionHandlerResult onException(
       DataFetcherExceptionHandlerParameters handlerParameters) {
     if (handlerParameters.getException() instanceof InvalidAuthenticationException) {
       GraphQLError graphqlError =
@@ -38,8 +37,7 @@ public class GraphQLCustomizeExceptionHandler implements DataFetcherExceptionHan
               .message(handlerParameters.getException().getMessage())
               .path(handlerParameters.getPath())
               .build();
-      return CompletableFuture.completedFuture(
-          DataFetcherExceptionHandlerResult.newResult().error(graphqlError).build());
+      return DataFetcherExceptionHandlerResult.newResult().error(graphqlError).build();
     } else if (handlerParameters.getException() instanceof ConstraintViolationException) {
       List<FieldErrorResource> errors = new ArrayList<>();
       for (ConstraintViolation<?> violation :
@@ -63,10 +61,9 @@ public class GraphQLCustomizeExceptionHandler implements DataFetcherExceptionHan
               .path(handlerParameters.getPath())
               .extensions(errorsToMap(errors))
               .build();
-      return CompletableFuture.completedFuture(
-          DataFetcherExceptionHandlerResult.newResult().error(graphqlError).build());
+      return DataFetcherExceptionHandlerResult.newResult().error(graphqlError).build();
     } else {
-      return defaultHandler.handleException(handlerParameters);
+      return defaultHandler.onException(handlerParameters);
     }
   }
 

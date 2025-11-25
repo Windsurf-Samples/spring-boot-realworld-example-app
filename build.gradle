@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '3.2.5'
+    id 'org.springframework.boot' version '3.0.13'
     id 'io.spring.dependency-management' version '1.1.4'
     id 'java'
     id "com.netflix.dgs.codegen" version "6.2.1"
@@ -36,8 +36,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
-    implementation platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:8.5.0')
-    implementation 'com.netflix.graphql.dgs:graphql-dgs-spring-graphql-starter'
+    implementation platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:6.0.5')
+    implementation 'com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter'
     implementation 'org.flywaydb:flyway-core'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5',
@@ -48,10 +48,14 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    testImplementation 'io.rest-assured:rest-assured:5.4.0'
-    testImplementation 'io.rest-assured:json-path:5.4.0'
-    testImplementation 'io.rest-assured:xml-path:5.4.0'
-    testImplementation 'io.rest-assured:spring-mock-mvc:5.4.0'
+    testImplementation('io.rest-assured:rest-assured:5.3.2')
+    testImplementation('io.rest-assured:json-path:5.3.2')
+    testImplementation('io.rest-assured:xml-path:5.3.2')
+    testImplementation('io.rest-assured:spring-mock-mvc:5.3.2') {
+        exclude group: 'io.rest-assured', module: 'spring-commons'
+    }
+    testImplementation('io.rest-assured:spring-commons:5.3.2')
+    testImplementation('io.rest-assured:rest-assured-common:5.3.2')
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.3'
