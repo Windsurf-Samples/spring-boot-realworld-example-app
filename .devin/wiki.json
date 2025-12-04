@@ -1,0 +1,270 @@
+{
+  "repo_notes": [
+    {
+      "content": ""
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "purpose": "Introduce the Spring Boot RealWorld application, summarizing its architecture, purpose, and key features including dual API support (REST + GraphQL)",
+      "page_notes": [
+        {
+          "content": "A small change"
+        }
+      ]
+    },
+    {
+      "title": "Architecture",
+      "purpose": "Detailed explanation of the architectural patterns and design principles used throughout the application",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Domain-Driven Design Structure",
+      "purpose": "Explain the DDD layered architecture with api, core, application, and infrastructure layers",
+      "parent": "Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "CQRS Pattern Implementation",
+      "purpose": "Detail how Command Query Responsibility Segregation separates read and write models",
+      "parent": "Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Dual API Architecture",
+      "purpose": "Explain how REST and GraphQL APIs coexist and share the same domain logic",
+      "parent": "Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Authentication & Security",
+      "purpose": "Comprehensive coverage of the JWT-based authentication system and Spring Security configuration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "JWT Token System",
+      "purpose": "Detail the JWT token generation, validation, and filter implementation",
+      "parent": "Authentication & Security",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Spring Security Configuration",
+      "purpose": "Explain the security configuration, CORS setup, and endpoint authorization rules",
+      "parent": "Authentication & Security",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "REST API",
+      "purpose": "Documentation of all REST endpoints, their functionality, and implementation patterns",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "User Management Endpoints",
+      "purpose": "Detail user registration, login, profile management, and current user operations",
+      "parent": "REST API",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Article Management Endpoints",
+      "purpose": "Document article CRUD operations, article listing, and feed functionality",
+      "parent": "REST API",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Social Features Endpoints",
+      "purpose": "Cover user profiles, following relationships, and article favoriting functionality",
+      "parent": "REST API",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Content Features Endpoints",
+      "purpose": "Document comments management and tags retrieval functionality",
+      "parent": "REST API",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "GraphQL API",
+      "purpose": "Complete documentation of the GraphQL schema, mutations, queries, and error handling",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "GraphQL Schema and Types",
+      "purpose": "Detail the GraphQL schema definition, types, and API surface",
+      "parent": "GraphQL API",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "GraphQL Mutations and Resolvers",
+      "purpose": "Explain GraphQL mutations for user management and data fetchers implementation",
+      "parent": "GraphQL API",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "GraphQL Pagination and Error Handling",
+      "purpose": "Document cursor-based pagination and custom exception handling for GraphQL",
+      "parent": "GraphQL API",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Data Layer",
+      "purpose": "Comprehensive coverage of data persistence, domain models, and database schema",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Database Schema",
+      "purpose": "Detail the relational database schema, tables, and relationships",
+      "parent": "Data Layer",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Domain Models",
+      "purpose": "Document core business entities including User, Article, Comment, and their relationships",
+      "parent": "Data Layer",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Repository Pattern",
+      "purpose": "Explain the repository abstraction layer and transaction management",
+      "parent": "Data Layer",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "MyBatis Implementation",
+      "purpose": "Detail the MyBatis ORM implementation, mappers, and SQL mappings",
+      "parent": "Data Layer",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Application Services",
+      "purpose": "Document the service layer that orchestrates business logic and data access",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Query Services",
+      "purpose": "Detail read-side services that handle data retrieval and enrichment",
+      "parent": "Application Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Command Services",
+      "purpose": "Document write-side services that handle business logic and data modification",
+      "parent": "Application Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Testing Strategy",
+      "purpose": "Explain the testing approach, utilities, and patterns used throughout the application",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Build & Deployment",
+      "purpose": "Document the build configuration, Gradle wrapper, and deployment setup",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
