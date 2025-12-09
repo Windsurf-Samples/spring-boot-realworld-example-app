@@ -4,7 +4,14 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import io.spring.api.exception.NoAuthorizationException;
 import io.spring.api.exception.ResourceNotFoundException;
 import io.spring.application.CommentQueryService;
+import io.spring.application.CursorPageParameter;
+import io.spring.application.CursorPager;
+import io.spring.application.CursorPager.Direction;
+import io.spring.application.DateTimeCursor;
 import io.spring.application.data.CommentData;
+import io.spring.application.data.CommentEdge;
+import io.spring.application.data.CommentsConnection;
+import io.spring.application.data.PageInfo;
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
 import io.spring.core.comment.Comment;
@@ -14,6 +21,7 @@ import io.spring.core.user.User;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -27,6 +35,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -52,9 +61,20 @@ public class CommentsApi {
 
   @GetMapping
   public ResponseEntity getComments(
-      @PathVariable("slug") String slug, @AuthenticationPrincipal User user) {
+      @PathVariable("slug") String slug,
+      @RequestParam(value = "first", required = false) Integer first,
+      @RequestParam(value = "last", required = false) Integer last,
+      @RequestParam(value = "after", required = false) String after,
+      @RequestParam(value = "before", required = false) String before,
+      @AuthenticationPrincipal User user) {
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
+
+    if (first != null || last != null) {
+      return ResponseEntity.ok(
+          getCommentsWithCursor(article.getId(), user, first, last, after, before));
+    }
+
     List<CommentData> comments = commentQueryService.findByArticleId(article.getId(), user);
     return ResponseEntity.ok(
         new HashMap<String, Object>() {
@@ -62,6 +82,40 @@ public class CommentsApi {
             put("comments", comments);
           }
         });
+  }
+
+  private CommentsConnection getCommentsWithCursor(
+      String articleId, User user, Integer first, Integer last, String after, String before) {
+    CursorPager<CommentData> comments;
+    if (first != null) {
+      comments =
+          commentQueryService.findByArticleIdWithCursor(
+              articleId,
+              user,
+              new CursorPageParameter<>(DateTimeCursor.parse(after), first, Direction.NEXT));
+    } else {
+      comments =
+          commentQueryService.findByArticleIdWithCursor(
+              articleId,
+              user,
+              new CursorPageParameter<>(DateTimeCursor.parse(before), last, Direction.PREV));
+    }
+    return buildCommentsConnection(comments);
+  }
+
+  private CommentsConnection buildCommentsConnection(CursorPager<CommentData> comments) {
+    PageInfo pageInfo =
+        new PageInfo(
+            comments.getStartCursor() != null ? comments.getStartCursor().toString() : null,
+            comments.getEndCursor() != null ? comments.getEndCursor().toString() : null,
+            comments.hasNext(),
+            comments.hasPrevious());
+
+    return new CommentsConnection(
+        comments.getData().stream()
+            .map(c -> new CommentEdge(c.getCursor().toString(), c))
+            .collect(Collectors.toList()),
+        pageInfo);
   }
 
   @RequestMapping(path = "{id}", method = RequestMethod.DELETE)
