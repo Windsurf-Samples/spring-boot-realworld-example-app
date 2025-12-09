@@ -13,6 +13,7 @@ import io.spring.JacksonCustomizations;
 import io.spring.TestHelper;
 import io.spring.api.security.WebSecurityConfig;
 import io.spring.application.ArticleQueryService;
+import io.spring.application.CommentQueryService;
 import io.spring.application.article.ArticleCommandService;
 import io.spring.application.data.ArticleData;
 import io.spring.application.data.ProfileData;
@@ -44,6 +45,8 @@ public class ArticleApiTest extends TestWithCurrentUser {
   @MockBean private ArticleRepository articleRepository;
 
   @MockBean ArticleCommandService articleCommandService;
+
+  @MockBean CommentQueryService commentQueryService;
 
   @Override
   @BeforeEach
