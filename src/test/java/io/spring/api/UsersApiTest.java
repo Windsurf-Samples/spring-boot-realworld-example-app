@@ -107,7 +107,9 @@ public class UsersApiTest {
         .prettyPeek()
         .then()
         .statusCode(422)
-        .body("errors.username[0]", equalTo("can't be empty"));
+        .body("message", equalTo("VALIDATION_ERROR"))
+        .body("errors[0].key", equalTo("username"))
+        .body("errors[0].value[0]", equalTo("can't be empty"));
   }
 
   @Test
@@ -125,7 +127,9 @@ public class UsersApiTest {
         .prettyPeek()
         .then()
         .statusCode(422)
-        .body("errors.email[0]", equalTo("should be an email"));
+        .body("message", equalTo("VALIDATION_ERROR"))
+        .body("errors[0].key", equalTo("email"))
+        .body("errors[0].value[0]", equalTo("should be an email"));
   }
 
   @Test
@@ -147,7 +151,9 @@ public class UsersApiTest {
         .prettyPeek()
         .then()
         .statusCode(422)
-        .body("errors.username[0]", equalTo("duplicated username"));
+        .body("message", equalTo("VALIDATION_ERROR"))
+        .body("errors[0].key", equalTo("username"))
+        .body("errors[0].value[0]", equalTo("duplicated username"));
   }
 
   @Test
@@ -169,7 +175,9 @@ public class UsersApiTest {
         .post("/users")
         .then()
         .statusCode(422)
-        .body("errors.email[0]", equalTo("duplicated email"));
+        .body("message", equalTo("VALIDATION_ERROR"))
+        .body("errors[0].key", equalTo("email"))
+        .body("errors[0].value[0]", equalTo("duplicated email"));
   }
 
   private HashMap<String, Object> prepareRegisterParameter(

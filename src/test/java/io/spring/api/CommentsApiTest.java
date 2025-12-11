@@ -113,7 +113,9 @@ public class CommentsApiTest extends TestWithCurrentUser {
         .post("/articles/{slug}/comments", article.getSlug())
         .then()
         .statusCode(422)
-        .body("errors.body[0]", equalTo("can't be empty"));
+        .body("message", equalTo("VALIDATION_ERROR"))
+        .body("errors[0].key", equalTo("body"))
+        .body("errors[0].value[0]", equalTo("can't be empty"));
   }
 
   @Test
