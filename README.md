@@ -8,20 +8,69 @@ This codebase was created to demonstrate a fully fledged full-stack application 
 
 For more information on how to this works with other frontends/backends, head over to the [RealWorld](https://github.com/gothinkster/realworld) repo.
 
-# *NEW* GraphQL Support  
-
-Following some DDD principles. REST or GraphQL is just a kind of adapter. And the domain layer will be consistent all the time. So this repository implement GraphQL and REST at the same time.
-
-The GraphQL schema is https://github.com/gothinkster/spring-boot-realworld-example-app/blob/master/src/main/resources/schema/schema.graphqls and the visualization looks like below.
-
-![](graphql-schema.png)
-
-And this implementation is using [dgs-framework](https://github.com/Netflix/dgs-framework) which is a quite new java graphql server framework.
 # How it works
 
 The application uses Spring Boot (Web, Mybatis).
 
 * Use the idea of Domain Driven Design to separate the business term and infrastructure term.
+
+# REST API Features
+
+## Cursor-Based Pagination
+
+The API supports Relay-style cursor pagination for articles, feed, and comments endpoints. Use query parameters:
+
+- `first` and `after` for forward pagination
+- `last` and `before` for backward pagination
+
+Example request:
+```
+GET /articles?first=10&after=<cursor>
+```
+
+Example response:
+```json
+{
+  "articles": [...],
+  "pageInfo": {
+    "startCursor": "2024-01-01T00:00:00.000Z",
+    "endCursor": "2024-01-10T00:00:00.000Z",
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
+```
+
+The traditional offset/limit pagination (`offset` and `limit` parameters) is still supported for backward compatibility.
+
+## Profile-Scoped Article Endpoints
+
+Query articles related to a specific user profile:
+
+- `GET /profiles/{username}/articles` - Articles authored by the user
+- `GET /profiles/{username}/favorites` - Articles favorited by the user
+- `GET /profiles/{username}/feed` - Articles from users that the profile follows
+
+All profile endpoints support cursor pagination with `first`, `after`, `last`, `before` parameters.
+
+## Error Response Format
+
+Validation errors return a structured format:
+```json
+{
+  "message": "VALIDATION_ERROR",
+  "errors": [
+    {
+      "key": "email",
+      "value": ["should be an email"]
+    },
+    {
+      "key": "username", 
+      "value": ["can't be empty"]
+    }
+  ]
+}
+```
 * Use MyBatis to implement the [Data Mapper](https://martinfowler.com/eaaCatalog/dataMapper.html) pattern for persistence.
 * Use [CQRS](https://martinfowler.com/bliki/CQRS.html) pattern to separate the read model and write model.
 

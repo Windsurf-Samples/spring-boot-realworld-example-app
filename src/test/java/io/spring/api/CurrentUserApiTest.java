@@ -141,7 +141,9 @@ public class CurrentUserApiTest extends TestWithCurrentUser {
         .prettyPeek()
         .then()
         .statusCode(422)
-        .body("errors.email[0]", equalTo("email already exist"));
+        .body("message", equalTo("VALIDATION_ERROR"))
+        .body("errors[0].key", equalTo("email"))
+        .body("errors[0].value[0]", equalTo("email already exist"));
   }
 
   private HashMap<String, Object> prepareUpdateParam(

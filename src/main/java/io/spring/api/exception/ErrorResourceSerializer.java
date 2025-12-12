@@ -14,29 +14,28 @@ public class ErrorResourceSerializer extends JsonSerializer<ErrorResource> {
   @Override
   public void serialize(ErrorResource value, JsonGenerator gen, SerializerProvider serializers)
       throws IOException, JsonProcessingException {
-    Map<String, List<String>> json = new HashMap<>();
-    gen.writeStartObject();
-    gen.writeObjectFieldStart("errors");
+    Map<String, List<String>> errorMap = new HashMap<>();
     for (FieldErrorResource fieldErrorResource : value.getFieldErrors()) {
-      if (!json.containsKey(fieldErrorResource.getField())) {
-        json.put(fieldErrorResource.getField(), new ArrayList<String>());
+      if (!errorMap.containsKey(fieldErrorResource.getField())) {
+        errorMap.put(fieldErrorResource.getField(), new ArrayList<String>());
       }
-      json.get(fieldErrorResource.getField()).add(fieldErrorResource.getMessage());
+      errorMap.get(fieldErrorResource.getField()).add(fieldErrorResource.getMessage());
     }
-    for (Map.Entry<String, List<String>> pair : json.entrySet()) {
-      gen.writeArrayFieldStart(pair.getKey());
-      pair.getValue()
-          .forEach(
-              content -> {
-                try {
-                  gen.writeString(content);
-                } catch (IOException e) {
-                  e.printStackTrace();
-                }
-              });
+
+    gen.writeStartObject();
+    gen.writeStringField("message", value.getMessage());
+    gen.writeArrayFieldStart("errors");
+    for (Map.Entry<String, List<String>> pair : errorMap.entrySet()) {
+      gen.writeStartObject();
+      gen.writeStringField("key", pair.getKey());
+      gen.writeArrayFieldStart("value");
+      for (String errorMessage : pair.getValue()) {
+        gen.writeString(errorMessage);
+      }
       gen.writeEndArray();
+      gen.writeEndObject();
     }
-    gen.writeEndObject();
+    gen.writeEndArray();
     gen.writeEndObject();
   }
 }

@@ -4,6 +4,11 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import io.spring.api.exception.NoAuthorizationException;
 import io.spring.api.exception.ResourceNotFoundException;
 import io.spring.application.CommentQueryService;
+import io.spring.application.CursorPageParameter;
+import io.spring.application.CursorPager;
+import io.spring.application.CursorPager.Direction;
+import io.spring.application.DateTimeCursor;
+import io.spring.application.data.CommentCursorDataList;
 import io.spring.application.data.CommentData;
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
@@ -27,6 +32,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -52,9 +58,20 @@ public class CommentsApi {
 
   @GetMapping
   public ResponseEntity getComments(
-      @PathVariable("slug") String slug, @AuthenticationPrincipal User user) {
+      @PathVariable("slug") String slug,
+      @RequestParam(value = "first", required = false) Integer first,
+      @RequestParam(value = "after", required = false) String after,
+      @RequestParam(value = "last", required = false) Integer last,
+      @RequestParam(value = "before", required = false) String before,
+      @AuthenticationPrincipal User user) {
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
+
+    if (first != null || last != null) {
+      return ResponseEntity.ok(
+          getCommentsWithCursor(article.getId(), first, after, last, before, user));
+    }
+
     List<CommentData> comments = commentQueryService.findByArticleId(article.getId(), user);
     return ResponseEntity.ok(
         new HashMap<String, Object>() {
@@ -62,6 +79,29 @@ public class CommentsApi {
             put("comments", comments);
           }
         });
+  }
+
+  private CommentCursorDataList getCommentsWithCursor(
+      String articleId, Integer first, String after, Integer last, String before, User user) {
+    if (first == null && last == null) {
+      throw new IllegalArgumentException("first or last must be provided for cursor pagination");
+    }
+
+    CursorPager<CommentData> comments;
+    if (first != null) {
+      comments =
+          commentQueryService.findByArticleIdWithCursor(
+              articleId,
+              user,
+              new CursorPageParameter<>(DateTimeCursor.parse(after), first, Direction.NEXT));
+    } else {
+      comments =
+          commentQueryService.findByArticleIdWithCursor(
+              articleId,
+              user,
+              new CursorPageParameter<>(DateTimeCursor.parse(before), last, Direction.PREV));
+    }
+    return new CommentCursorDataList(comments);
   }
 
   @RequestMapping(path = "{id}", method = RequestMethod.DELETE)
