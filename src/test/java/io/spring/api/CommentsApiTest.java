@@ -162,4 +162,192 @@ public class CommentsApiTest extends TestWithCurrentUser {
         .then()
         .statusCode(403);
   }
+
+  @Test
+  public void should_get_401_if_not_authenticated_when_create_comment() throws Exception {
+    Map<String, Object> param =
+        new HashMap<String, Object>() {
+          {
+            put(
+                "comment",
+                new HashMap<String, Object>() {
+                  {
+                    put("body", "comment content");
+                  }
+                });
+          }
+        };
+
+    given()
+        .contentType("application/json")
+        .body(param)
+        .when()
+        .post("/articles/{slug}/comments", article.getSlug())
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_get_401_if_not_authenticated_when_delete_comment() throws Exception {
+    RestAssuredMockMvc.when()
+        .delete("/articles/{slug}/comments/{id}", article.getSlug(), comment.getId())
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_get_404_when_create_comment_on_nonexistent_article() throws Exception {
+    String nonExistentSlug = "nonexistent-article";
+    when(articleRepository.findBySlug(eq(nonExistentSlug))).thenReturn(Optional.empty());
+
+    Map<String, Object> param =
+        new HashMap<String, Object>() {
+          {
+            put(
+                "comment",
+                new HashMap<String, Object>() {
+                  {
+                    put("body", "comment content");
+                  }
+                });
+          }
+        };
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(param)
+        .when()
+        .post("/articles/{slug}/comments", nonExistentSlug)
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  public void should_get_404_when_get_comments_on_nonexistent_article() throws Exception {
+    String nonExistentSlug = "nonexistent-article";
+    when(articleRepository.findBySlug(eq(nonExistentSlug))).thenReturn(Optional.empty());
+
+    RestAssuredMockMvc.when()
+        .get("/articles/{slug}/comments", nonExistentSlug)
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  public void should_get_404_when_delete_nonexistent_comment() throws Exception {
+    String nonExistentCommentId = "nonexistent-comment-id";
+    when(commentRepository.findById(eq(article.getId()), eq(nonExistentCommentId)))
+        .thenReturn(Optional.empty());
+
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .delete("/articles/{slug}/comments/{id}", article.getSlug(), nonExistentCommentId)
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  public void should_get_401_with_invalid_token_when_create_comment() throws Exception {
+    String invalidToken = "invalid-token";
+    when(jwtService.getSubFromToken(eq(invalidToken))).thenReturn(Optional.empty());
+
+    Map<String, Object> param =
+        new HashMap<String, Object>() {
+          {
+            put(
+                "comment",
+                new HashMap<String, Object>() {
+                  {
+                    put("body", "comment content");
+                  }
+                });
+          }
+        };
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + invalidToken)
+        .body(param)
+        .when()
+        .post("/articles/{slug}/comments", article.getSlug())
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_get_401_with_invalid_token_when_delete_comment() throws Exception {
+    String invalidToken = "invalid-token";
+    when(jwtService.getSubFromToken(eq(invalidToken))).thenReturn(Optional.empty());
+
+    given()
+        .header("Authorization", "Token " + invalidToken)
+        .when()
+        .delete("/articles/{slug}/comments/{id}", article.getSlug(), comment.getId())
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_get_comments_without_authentication() throws Exception {
+    when(commentQueryService.findByArticleId(anyString(), eq(null)))
+        .thenReturn(Arrays.asList(commentData));
+    RestAssuredMockMvc.when()
+        .get("/articles/{slug}/comments", article.getSlug())
+        .then()
+        .statusCode(200)
+        .body("comments[0].id", equalTo(commentData.getId()));
+  }
+
+  @Test
+  public void should_get_comments_with_authentication() throws Exception {
+    when(commentQueryService.findByArticleId(anyString(), eq(user)))
+        .thenReturn(Arrays.asList(commentData));
+
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .get("/articles/{slug}/comments", article.getSlug())
+        .then()
+        .statusCode(200)
+        .body("comments[0].id", equalTo(commentData.getId()));
+  }
+
+  @Test
+  public void should_get_empty_comments_list_for_article_without_comments() throws Exception {
+    when(commentQueryService.findByArticleId(anyString(), eq(null))).thenReturn(Arrays.asList());
+
+    RestAssuredMockMvc.when()
+        .get("/articles/{slug}/comments", article.getSlug())
+        .then()
+        .statusCode(200)
+        .body("comments.size()", equalTo(0));
+  }
+
+  @Test
+  public void should_get_422_with_null_body() throws Exception {
+    Map<String, Object> param =
+        new HashMap<String, Object>() {
+          {
+            put(
+                "comment",
+                new HashMap<String, Object>() {
+                  {
+                    put("body", null);
+                  }
+                });
+          }
+        };
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(param)
+        .when()
+        .post("/articles/{slug}/comments", article.getSlug())
+        .then()
+        .statusCode(422)
+        .body("errors.body[0]", equalTo("can't be empty"));
+  }
 }

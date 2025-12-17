@@ -222,4 +222,183 @@ public class ArticleApiTest extends TestWithCurrentUser {
       }
     };
   }
+
+  @Test
+  public void should_get_401_if_not_authenticated_when_update_article() throws Exception {
+    String slug = "test-article";
+    Map<String, Object> updateParam =
+        prepareUpdateParam("new title", "new body", "new description");
+
+    given()
+        .contentType("application/json")
+        .body(updateParam)
+        .when()
+        .put("/articles/{slug}", slug)
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_get_401_if_not_authenticated_when_delete_article() throws Exception {
+    String slug = "test-article";
+
+    RestAssuredMockMvc.when().delete("/articles/{slug}", slug).then().statusCode(401);
+  }
+
+  @Test
+  public void should_get_404_when_update_nonexistent_article() throws Exception {
+    String slug = "nonexistent-article";
+    Map<String, Object> updateParam =
+        prepareUpdateParam("new title", "new body", "new description");
+
+    when(articleRepository.findBySlug(eq(slug))).thenReturn(Optional.empty());
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(updateParam)
+        .when()
+        .put("/articles/{slug}", slug)
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  public void should_get_404_when_delete_nonexistent_article() throws Exception {
+    String slug = "nonexistent-article";
+
+    when(articleRepository.findBySlug(eq(slug))).thenReturn(Optional.empty());
+
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .delete("/articles/{slug}", slug)
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  public void should_get_401_with_invalid_token_when_update_article() throws Exception {
+    String invalidToken = "invalid-token";
+    when(jwtService.getSubFromToken(eq(invalidToken))).thenReturn(Optional.empty());
+
+    String slug = "test-article";
+    Map<String, Object> updateParam =
+        prepareUpdateParam("new title", "new body", "new description");
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + invalidToken)
+        .body(updateParam)
+        .when()
+        .put("/articles/{slug}", slug)
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_get_401_with_invalid_token_when_delete_article() throws Exception {
+    String invalidToken = "invalid-token";
+    when(jwtService.getSubFromToken(eq(invalidToken))).thenReturn(Optional.empty());
+
+    String slug = "test-article";
+
+    given()
+        .header("Authorization", "Token " + invalidToken)
+        .when()
+        .delete("/articles/{slug}", slug)
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_update_article_with_partial_data() throws Exception {
+    List<String> tagList = Arrays.asList("java", "spring");
+
+    Article originalArticle =
+        new Article("old title", "old description", "old body", tagList, user.getId());
+
+    Article updatedArticle =
+        new Article("old title", "old description", "new body only", tagList, user.getId());
+
+    Map<String, Object> updateParam =
+        new HashMap<String, Object>() {
+          {
+            put(
+                "article",
+                new HashMap<String, Object>() {
+                  {
+                    put("body", "new body only");
+                  }
+                });
+          }
+        };
+
+    ArticleData updatedArticleData =
+        TestHelper.getArticleDataFromArticleAndUser(updatedArticle, user);
+
+    when(articleRepository.findBySlug(eq(originalArticle.getSlug())))
+        .thenReturn(Optional.of(originalArticle));
+    when(articleCommandService.updateArticle(eq(originalArticle), any()))
+        .thenReturn(updatedArticle);
+    when(articleQueryService.findBySlug(eq(updatedArticle.getSlug()), eq(user)))
+        .thenReturn(Optional.of(updatedArticleData));
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(updateParam)
+        .when()
+        .put("/articles/{slug}", originalArticle.getSlug())
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  public void should_read_article_without_authentication() throws Exception {
+    String slug = "test-new-article";
+    DateTime time = new DateTime();
+    Article article =
+        new Article(
+            "Test New Article",
+            "Desc",
+            "Body",
+            Arrays.asList("java", "spring", "jpg"),
+            user.getId(),
+            time);
+    ArticleData articleData = TestHelper.getArticleDataFromArticleAndUser(article, user);
+
+    when(articleQueryService.findBySlug(eq(slug), eq(null))).thenReturn(Optional.of(articleData));
+
+    RestAssuredMockMvc.when()
+        .get("/articles/{slug}", slug)
+        .then()
+        .statusCode(200)
+        .body("article.slug", equalTo(slug));
+  }
+
+  @Test
+  public void should_read_article_with_authentication() throws Exception {
+    String slug = "test-new-article";
+    DateTime time = new DateTime();
+    Article article =
+        new Article(
+            "Test New Article",
+            "Desc",
+            "Body",
+            Arrays.asList("java", "spring", "jpg"),
+            user.getId(),
+            time);
+    ArticleData articleData = TestHelper.getArticleDataFromArticleAndUser(article, user);
+
+    when(articleQueryService.findBySlug(eq(slug), eq(user))).thenReturn(Optional.of(articleData));
+
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .get("/articles/{slug}", slug)
+        .then()
+        .statusCode(200)
+        .body("article.slug", equalTo(slug));
+  }
 }

@@ -100,4 +100,86 @@ public class ArticleFavoriteApiTest extends TestWithCurrentUser {
         .body("article.id", equalTo(article.getId()));
     verify(articleFavoriteRepository).remove(new ArticleFavorite(article.getId(), user.getId()));
   }
+
+  @Test
+  public void should_get_401_if_not_authenticated_when_favorite() throws Exception {
+    RestAssuredMockMvc.when()
+        .post("/articles/{slug}/favorite", article.getSlug())
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_get_401_if_not_authenticated_when_unfavorite() throws Exception {
+    RestAssuredMockMvc.when()
+        .delete("/articles/{slug}/favorite", article.getSlug())
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_get_404_when_favorite_nonexistent_article() throws Exception {
+    String nonExistentSlug = "nonexistent-article";
+    when(articleRepository.findBySlug(eq(nonExistentSlug))).thenReturn(Optional.empty());
+
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .post("/articles/{slug}/favorite", nonExistentSlug)
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  public void should_get_404_when_unfavorite_nonexistent_article() throws Exception {
+    String nonExistentSlug = "nonexistent-article";
+    when(articleRepository.findBySlug(eq(nonExistentSlug))).thenReturn(Optional.empty());
+
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .delete("/articles/{slug}/favorite", nonExistentSlug)
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  public void should_get_401_with_invalid_token_when_favorite() throws Exception {
+    String invalidToken = "invalid-token";
+    when(jwtService.getSubFromToken(eq(invalidToken))).thenReturn(Optional.empty());
+
+    given()
+        .header("Authorization", "Token " + invalidToken)
+        .when()
+        .post("/articles/{slug}/favorite", article.getSlug())
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_get_401_with_invalid_token_when_unfavorite() throws Exception {
+    String invalidToken = "invalid-token";
+    when(jwtService.getSubFromToken(eq(invalidToken))).thenReturn(Optional.empty());
+
+    given()
+        .header("Authorization", "Token " + invalidToken)
+        .when()
+        .delete("/articles/{slug}/favorite", article.getSlug())
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_unfavorite_article_that_was_not_favorited() throws Exception {
+    when(articleFavoriteRepository.find(eq(article.getId()), eq(user.getId())))
+        .thenReturn(Optional.empty());
+
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .delete("/articles/{slug}/favorite", article.getSlug())
+        .then()
+        .statusCode(200)
+        .body("article.id", equalTo(article.getId()));
+  }
 }

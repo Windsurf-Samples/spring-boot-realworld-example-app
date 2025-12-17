@@ -170,4 +170,153 @@ public class ArticlesApiTest extends TestWithCurrentUser {
       }
     };
   }
+
+  @Test
+  public void should_get_401_if_not_authenticated_when_create_article() throws Exception {
+    String title = "How to train your dragon";
+    String description = "Ever wonder how?";
+    String body = "You have to believe";
+    List<String> tagList = asList("reactjs", "angularjs", "dragons");
+    Map<String, Object> param = prepareParam(title, description, body, tagList);
+
+    given()
+        .contentType("application/json")
+        .body(param)
+        .when()
+        .post("/articles")
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_get_error_with_empty_title() throws Exception {
+    String title = "";
+    String description = "Ever wonder how?";
+    String body = "You have to believe";
+    List<String> tagList = asList("reactjs", "angularjs", "dragons");
+    Map<String, Object> param = prepareParam(title, description, body, tagList);
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(param)
+        .when()
+        .post("/articles")
+        .then()
+        .statusCode(422)
+        .body("errors.title[0]", equalTo("can't be empty"));
+  }
+
+  @Test
+  public void should_get_error_with_empty_description() throws Exception {
+    String title = "How to train your dragon";
+    String description = "";
+    String body = "You have to believe";
+    List<String> tagList = asList("reactjs", "angularjs", "dragons");
+    Map<String, Object> param = prepareParam(title, description, body, tagList);
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(param)
+        .when()
+        .post("/articles")
+        .then()
+        .statusCode(422)
+        .body("errors.description[0]", equalTo("can't be empty"));
+  }
+
+  @Test
+  public void should_create_article_without_tags() throws Exception {
+    String title = "Article without tags";
+    String slug = "article-without-tags";
+    String description = "No tags here";
+    String body = "Body content";
+
+    ArticleData articleData =
+        new ArticleData(
+            "123",
+            slug,
+            title,
+            description,
+            body,
+            false,
+            0,
+            new DateTime(),
+            new DateTime(),
+            asList(),
+            new ProfileData("userid", user.getUsername(), user.getBio(), user.getImage(), false));
+
+    when(articleCommandService.createArticle(any(), any()))
+        .thenReturn(new Article(title, description, body, asList(), user.getId()));
+
+    when(articleQueryService.findBySlug(eq(Article.toSlug(title)), any()))
+        .thenReturn(Optional.empty());
+
+    when(articleQueryService.findById(any(), any())).thenReturn(Optional.of(articleData));
+
+    Map<String, Object> param =
+        new HashMap<String, Object>() {
+          {
+            put(
+                "article",
+                new HashMap<String, Object>() {
+                  {
+                    put("title", title);
+                    put("description", description);
+                    put("body", body);
+                  }
+                });
+          }
+        };
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(param)
+        .when()
+        .post("/articles")
+        .then()
+        .statusCode(200)
+        .body("article.title", equalTo(title));
+  }
+
+  @Test
+  public void should_get_401_with_invalid_token_when_create_article() throws Exception {
+    String invalidToken = "invalid-token";
+    when(jwtService.getSubFromToken(eq(invalidToken))).thenReturn(Optional.empty());
+
+    String title = "How to train your dragon";
+    String description = "Ever wonder how?";
+    String body = "You have to believe";
+    List<String> tagList = asList("reactjs", "angularjs", "dragons");
+    Map<String, Object> param = prepareParam(title, description, body, tagList);
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + invalidToken)
+        .body(param)
+        .when()
+        .post("/articles")
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  public void should_get_error_with_multiple_validation_failures() throws Exception {
+    String title = "";
+    String description = "";
+    String body = "";
+    List<String> tagList = asList("reactjs");
+    Map<String, Object> param = prepareParam(title, description, body, tagList);
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(param)
+        .when()
+        .post("/articles")
+        .then()
+        .statusCode(422);
+  }
 }
