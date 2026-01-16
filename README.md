@@ -10,7 +10,7 @@ For more information on how to this works with other frontends/backends, head ov
 
 # How it works
 
-The application uses Spring Boot (Web, Mybatis).
+The application uses Spring Boot (Web, Mybatis) to expose a REST API.
 
 * Use the idea of Domain Driven Design to separate the business term and infrastructure term.
 * Use MyBatis to implement the [Data Mapper](https://martinfowler.com/eaaCatalog/dataMapper.html) pattern for persistence.
