@@ -1,6 +1,6 @@
-package io.spring.core.user;
+package io.spring.auth.core.user;
 
-import io.spring.Util;
+import io.spring.auth.Util;
 import java.util.UUID;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -19,15 +19,6 @@ public class User {
 
   public User(String email, String username, String password, String bio, String image) {
     this.id = UUID.randomUUID().toString();
-    this.email = email;
-    this.username = username;
-    this.password = password;
-    this.bio = bio;
-    this.image = image;
-  }
-
-  public User(String id, String email, String username, String password, String bio, String image) {
-    this.id = id;
     this.email = email;
     this.username = username;
     this.password = password;

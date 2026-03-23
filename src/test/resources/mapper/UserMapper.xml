@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.spring.infrastructure.mybatis.mapper.TestUserMapper">
+    <insert id="insert">
+        insert into users(id, username, email, password, bio, image)
+        values(
+        #{user.id},
+        #{user.username},
+        #{user.email},
+        #{user.password},
+        #{user.bio},
+        #{user.image}
+        )
+    </insert>
+
+    <update id="update">
+        update users
+        <set>
+            <if test="user.username != ''">username = #{user.username},</if>
+            <if test="user.email != ''">email = #{user.email},</if>
+            <if test="user.password != ''">password = #{user.password},</if>
+            <if test="user.bio != ''">bio = #{user.bio},</if>
+            <if test="user.image != ''">image = #{user.image},</if>
+        </set>
+        where id = #{user.id}
+    </update>
+
+    <select id="findById" resultType="io.spring.core.user.User">
+        select id, username, email, password, bio, image from users where id = #{id}
+    </select>
+
+    <select id="findByUsername" resultType="io.spring.core.user.User">
+        select id, username, email, password, bio, image from users where username = #{username}
+    </select>
+
+    <select id="findByEmail" resultType="io.spring.core.user.User">
+        select id, username, email, password, bio, image from users where email = #{email}
+    </select>
+
+    <insert id="saveRelation">
+        insert into follows(user_id, follow_id) values(#{followRelation.userId}, #{followRelation.followId})
+    </insert>
+
+    <select id="findRelation" resultType="io.spring.core.user.FollowRelation">
+        select user_id as userId, follow_id as followId from follows where user_id = #{userId} and follow_id = #{targetId}
+    </select>
+
+    <delete id="deleteRelation">
+        delete from follows where user_id = #{followRelation.userId} and follow_id = #{followRelation.followId}
+    </delete>
+</mapper>

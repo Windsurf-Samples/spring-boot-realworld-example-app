@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.spring.infrastructure.mybatis.readservice.TestUserRelationshipQueryService">
+    <select id="isUserFollowing" resultType="boolean">
+        select
+        count(1) > 0
+        from follows
+        where user_id = #{userId} and follow_id = #{anotherUserId}
+    </select>
+
+    <select id="followingAuthors" resultType="String">
+        select follow_id from follows
+        where user_id = #{userId} and follow_id in
+        <foreach index="index" collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="followedUsers" resultType="String">
+        select follow_id from follows where user_id = #{userId}
+    </select>
+</mapper>
