@@ -1,3 +1,12 @@
+create table users (
+  id varchar(255) primary key,
+  username varchar(255) UNIQUE,
+  password varchar(255),
+  email varchar(255) UNIQUE,
+  bio text,
+  image varchar(511)
+);
+
 create table articles (
   id varchar(255) primary key,
   user_id varchar(255),
@@ -13,6 +22,11 @@ create table article_favorites (
   article_id varchar(255) not null,
   user_id varchar(255) not null,
   primary key(article_id, user_id)
+);
+
+create table follows (
+  user_id varchar(255) not null,
+  follow_id varchar(255) not null
 );
 
 create table tags (
